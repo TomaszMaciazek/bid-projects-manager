@@ -3,15 +3,19 @@
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.0" />
+    <PackageReference Include="FluentValidation" Version="11.4.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Services\" />
+    <ProjectReference Include="..\BidProjectsManager.DataLayer\BidProjectsManager.DataLayer.csproj" />
+    <ProjectReference Include="..\BidProjectsManager.Mappings\BidProjectsManager.Mappings.csproj" />
+    <ProjectReference Include="..\BidProjectsManager.Model\BidProjectsManager.Model.csproj" />
+    <ProjectReference Include="..\BidProjectsManager.Validation\BidProjectsManager.Validation.csproj" />
   </ItemGroup>
 
 </Project>

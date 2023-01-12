@@ -1,0 +1,126 @@
+<mat-card class="main-card">
+  <p-sidebar [(visible)]="showFilters" appendTo="body" position="right" [baseZIndex]="10000">
+    <ng-template pTemplate="header">
+      <h1 style="font-weight:normal">Filters</h1>
+    </ng-template>
+    <ng-template pTemplate="content">
+      <form [formGroup]="form" class="filters-form p-2">
+        <div>
+          <h4>Project Name</h4>
+          <input type="text" pInputText formControlName="Name" placeholder="Enter Phrase" [style]="{'width': '100%'}"/> 
+        </div>
+        <div>
+          <h4>Countries</h4>
+          <p-multiSelect  [options]="countries"
+            formControlName="Countries"  placeholder="Select Countries"
+            autoWidth="false" [style]="{'width':'100%'}"
+            optionLabel="name" display="chip"></p-multiSelect >
+        </div>
+        <div>
+          <h4>Project Stages</h4>
+          <p-multiSelect [options]="projectStagesOptions" autoWidth="false"
+          placeholder="Select Project Stage" formControlName="Stages"
+          [style]="{'width': '100%'}" display="chip"></p-multiSelect>
+        </div>
+        <div>
+          <h4>Bid Statuses</h4>
+          <p-multiSelect [options]="bidStatusesOptions" autoWidth="false"
+          placeholder="Select Bid Status" formControlName="Statuses"
+          [style]="{'width': '100%'}" display="chip" appendTo="body"></p-multiSelect>
+        </div>
+        <div class="sidebar-buttons">
+          <p-button type="text" (click)="resetFilters()" icon="pi pi-refresh" class="" styleClass="p-button-danger" label="Clear Filters"></p-button>
+          <p-button type="text" (click)="search()" icon="pi pi-search" class="" styleClass="p-button-primary" label="Search"></p-button>
+      </div>
+      </form>
+    </ng-template>
+</p-sidebar>
+  <div class="wrapper">
+    <header class="wrapper-row header-row">
+      <h1 style="font-weight: 600;">Bid Projects</h1>
+    </header>
+    <p-toolbar>
+      <div class="p-toolbar-group-start">
+        <p-button type="text" (click)="showFilters = true" icon="pi pi-eye" label="Show filters"></p-button>
+      </div>
+
+      <div class="p-toolbar-group-start functional-buttons">
+        <p-button icon="pi pi-plus" styleClass="p-button-success" label="New Project" (onClick)="addProject()"></p-button>
+        <p-button icon="pi pi-file-excel" styleClass="p-button-danger" label="Export Projects"></p-button>
+      </div>
+    </p-toolbar>
+    <div class="wrapper-row table-content">
+      <table class="mat-elevation-z8" *ngIf="projects && projects.length > 0" mat-table [dataSource]="projects" matSort (matSortChange)="projectSort($event)">
+        
+        <ng-container matColumnDef="project-id">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>No.</th>
+          <td mat-cell *matCellDef="let project">
+            {{project.id}} </td>
+        </ng-container>
+    
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+          <td mat-cell *matCellDef="let project">
+            {{project.name}}</td>
+        </ng-container>
+    
+        <ng-container matColumnDef="stage">
+          <th mat-header-cell *matHeaderCellDef> Stage </th>
+            <td mat-cell *matCellDef="let project">
+                <ng-container [ngSwitch]="project.stage">
+                    <span *ngSwitchCase="projectStage.Draft">Draft</span>
+                    <span *ngSwitchCase="projectStage.Submitted">Submitted</span>
+                    <span *ngSwitchCase="projectStage.Approved">Approved</span>
+                    <span *ngSwitchCase="projectStage.Rejected">Rejected</span>
+                    <span *ngSwitchDefault>Unknown</span>
+                </ng-container>
+            </td>
+        </ng-container>
+    
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef> Status </th>
+            <td mat-cell *matCellDef="let project">
+                <ng-container [ngSwitch]="project.status">
+                    <span *ngSwitchCase="bidStatus.BidPreparation">Bid Preparation</span>
+                    <span *ngSwitchCase="bidStatus.Won">Won</span>
+                    <span *ngSwitchCase="bidStatus.Lost">Lost</span>
+                    <span *ngSwitchCase="bidStatus.NoBid">No Bid</span>
+                    <span *ngSwitchDefault>Unknown</span>
+                </ng-container>
+            </td>
+        </ng-container>
+    
+        <ng-container matColumnDef="country">
+          <th mat-header-cell *matHeaderCellDef>Country</th>
+          <td mat-cell *matCellDef="let project">
+            {{getCountryName(project.countryId)}}</td>
+        </ng-container>
+    
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef> Actions </th>
+          <td mat-cell *matCellDef="let project">
+            <button mat-icon-button matTooltip="View" *ngIf="project.stage == projectStage.Approved">
+              <mat-icon>preview</mat-icon>
+            </button>
+            <button mat-icon-button matTooltip="Edit" *ngIf="project.stage != projectStage.Approved" (click)="editProject(project.id)" >
+              <mat-icon>edit</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+    
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+
+    </div>
+    <div class="wrapper-row paginator" *ngIf="projects && projects.length > 0">
+            <mat-paginator *ngIf="projects && projects.length > 0" #paginator [pageSize]="pageSize" [pageSizeOptions]="pageSizeOptions"
+        [length]="length" [pageIndex]="pageIndex"
+        (page)="handlePage($event)" style="width: 100%;">
+      </mat-paginator>
+    </div>
+    <div *ngIf="projects == null || projects.length == 0">
+      <h2>No projects found</h2>
+    </div>
+  </div>
+</mat-card>

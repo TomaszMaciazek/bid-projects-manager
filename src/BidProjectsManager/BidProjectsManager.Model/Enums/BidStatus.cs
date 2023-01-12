@@ -2,9 +2,9 @@
 {
     public enum BidStatus
     {
-        BidPreparation = 0,
-        Won = 1,
-        Lost = 2,
-        NoBid = 3
+        BidPreparation = 1,
+        Won = 2,
+        Lost = 3,
+        NoBid = 4
     }
 }

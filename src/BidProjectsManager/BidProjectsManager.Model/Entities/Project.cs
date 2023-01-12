@@ -7,8 +7,6 @@ namespace BidProjectsManager.Model.Entities
     {
         [Required]
         public string Name { get; set; }
-
-        [Required]
         public string Description { get; set; }
 
         [Required]
@@ -23,43 +21,32 @@ namespace BidProjectsManager.Model.Entities
         [Required]
         public int CountryId { get; set; }
         public Country Country { get; set; }
-
-        [Required]
-        public BidStatus BidStatus { get; set; }
-
-        [Required]
+        public BidStatus? Status { get; set; }
         public ProjectStage Stage { get; set; }
-
-        [Required]
-        public int NumberOfVechicles { get; set; }
-
-        [Required]
-        public DateTime BidOperationStart { get; set; }
-
-        [Required]
-        public DateTime BidEstiamtedOperationEnd { get; set; }
+        public int? NumberOfVechicles { get; set; }
+        public DateTime? BidOperationStart { get; set; }
+        public DateTime? BidEstimatedOperationEnd { get; set; }
 
         public string NoBidReason { get; set; }
 
         public int? OptionalExtensionYears { get; set; }
 
-        public int? LifetimeInKilometers { get; set; }
+        public int? LifetimeInThousandsKilometers { get; set; }
 
         public decimal? TotalCapex { get; set; }
 
         public decimal? TotalOpex { get; set; }
 
         public decimal? TotalEbit { get; set; }
-
         public BidProbability? Probability { get; set; }
-
         public BidPriority? Priority { get; set; }
 
         public DateTime? ApprovalDate { get; set; }
+        public ProjectType? Type { get; set; }
 
         [Required]
         public int CurrencyId { get; set; }
-        public Currency Currency { get; set; }
+        public Currency ProjectCurrency { get; set; }
 
         public ICollection<BidCapex> Capexes { get; set; }
         public ICollection<BidEbit> Ebits { get; set; }

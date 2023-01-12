@@ -3,6 +3,6 @@
     public class UpdateOpexCommand
     {
         public int Id { get; set; }
-        public decimal Value { get; set; }
+        public decimal? Value { get; set; }
     }
 }

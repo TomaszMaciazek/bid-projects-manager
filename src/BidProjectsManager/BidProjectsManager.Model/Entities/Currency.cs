@@ -5,6 +5,9 @@ namespace BidProjectsManager.Model.Entities
     public class Currency : BaseEntity
     {
         [Required]
+        public string Name { get; set; }
+
+        [Required]
         [MaxLength(3)]
         public string Code { get; set; }
 

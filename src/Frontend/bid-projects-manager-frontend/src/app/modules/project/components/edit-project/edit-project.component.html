@@ -1,0 +1,216 @@
+<p-confirmDialog header="Confirmation" icon="pi pi-exclamation-triangle"></p-confirmDialog>
+<div class="main-card">
+    <form [formGroup]="form">
+        <div class="wrapper">
+            <header class="wrapper-row header-row p-2">
+                <h1 *ngIf="isEdit" style="font-weight: 600; font-size: 2rem;">Edit Project</h1>
+                <h1 *ngIf="!isEdit" style="font-weight: 600; font-size: 2rem;">Create Project</h1>
+            </header>
+
+            <p-toolbar>
+            <div class="p-toolbar-group-start">
+                <button pButton pRipple (click)="returnToProjects()" icon="pi pi-arrow-left" label="Return" class="p-button-raised p-button-secondary p-button-text"></button>
+            </div>
+
+            <div class="p-toolbar-group-start functional-buttons">
+                <p-button type="submit" icon="pi pi-save" styleClass="p-button-success" label="Save Draft" (onClick)="saveDraft()"></p-button>
+                <p-button icon="pi pi-check-square" styleClass="p-button-info" label="Submit Project"></p-button>
+            </div>
+            </p-toolbar>
+
+            <div id="project-form" class="p-2">
+                <p-card header="Basic details" styleClass="p-2">
+                    <div class="row mt-2 p-2" *ngIf="isEdit">
+                        <h2 style="padding-left: 0px;">Project no : {{addLeadingZeros(id, 5)}}</h2>
+                    </div>
+                    <div class="row p-2">
+                        <div class="col-md-4 col-xs-12 p-1">
+                            <h4>Project Name</h4>
+                            <input id="project-name" type="text" pInputText formControlName="Name" [style]="{'width':'100%'}">
+                            <small class="p-error block" *ngIf="form.get('Name')?.invalid && form.get('Name')?.dirty">Name is required</small>
+                        </div>
+                        <div class="col-md-4 col-xs-12 p-1">
+                            <h4>Country</h4>
+                            <p-dropdown [options]="countries" [showClear]="true" formControlName="Country" placeholder="Select Country"
+                                autoWidth="false" [style]="{'width':'100%'}" filterBy="name,code" appendTo="body"
+                                [filter]="true" (onChange)="onCountryChange($event)" (onClear)="onCountryClear()" [readonly]="isEdit">
+                                <ng-template let-item pTemplate="selectedItem">
+                                    <div *ngIf="item">
+                                        <div class="d-inline">
+                                            ({{item.code}}) {{item.name}}
+                                        </div>
+                                    </div>
+                                </ng-template>
+                                <ng-template let-currency pTemplate="item">
+                                    <div class="d-inline">
+                                        ({{currency.code}}) {{currency.name}}
+                                    </div>
+                                </ng-template>
+                            </p-dropdown>
+                            <small class="p-error block" *ngIf="form.get('Country')?.invalid && form.get('Country')?.dirty">Country is required</small>
+                        </div>
+                        <div class="col-md-4 col-xs-12 p-1">
+                            <h4>Project Type</h4>
+                            <p-dropdown [options]="projectTypes" [showClear]="true" formControlName="Type"
+                                placeholder="Select Project Type" autoWidth="false" [style]="{'width':'100%'}">
+                            </p-dropdown>
+                        </div>
+                    </div>
+                    <div class="row p-2">
+                        <div class="col-12 p-1">
+                            <h4>Description</h4>
+                            <textarea [rows]="5" [cols]="100" pInputTextarea [autoResize]="true" placeholder="Description"
+                            formControlName="Description" [style]="{'width':'100%'}"></textarea>
+                        </div>
+                    </div>
+                </p-card>
+                <p-card header="Advanced details" styleClass="p-2">
+                    <div class="row p-2">
+                        <div class="col-md-4 col-xs-12 p-1">
+                            <h4>Number Of Vechicles</h4>
+                            <p-inputNumber formControlName="NumberOfVechicles" inputId="integeronly" [showButtons]="true"
+                            placeholder="Number Of Vechicles" autoWidth="false" [style]="{'width':'100%'}"></p-inputNumber>
+                        </div>
+                        <div class="col-md-4 col-xs-12 p-1">
+                            <h4>Lifetime In Thousands Kilometers</h4>
+                            <p-inputNumber formControlName="LifetimeInThousandsKilometers" inputId="integeronly" [showButtons]="true"
+                            placeholder="Lifetime" autoWidth="false" [style]="{'width':'100%'}"></p-inputNumber>
+                        </div>
+                        <div class="col-md-4 col-xs-12 p-1">
+                            <h4>Optional Extension In Years</h4>
+                            <p-inputNumber formControlName="OptionalExtensionYears" inputId="integeronly" [showButtons]="true"
+                            placeholder="Optional Extension In Years" autoWidth="false" [style]="{'width':'100%'}"></p-inputNumber>
+                        </div>
+                    </div>
+                    <div class="row p-2">
+                        <div class="col-md-4 col-xs-12 p-1">
+                            <h4>Priority</h4>
+                            <p-dropdown [options]="priorities" [showClear]="true" formControlName="Priority"
+                                placeholder="Select Bid Priority" autoWidth="false" [style]="{'width':'100%'}">
+                            </p-dropdown>
+                        </div>
+                        <div class="col-md-4 col-xs-12 p-1">
+                            <h4>Probability</h4>
+                            <p-dropdown [options]="probabilities" [showClear]="true" formControlName="Probability"
+                                placeholder="Select Bid Probability" autoWidth="false" [style]="{'width':'100%'}">
+                            </p-dropdown>
+                        </div>
+                        <div class="col-md-4 col-xs-12 p-1">
+                            <h4>Bid Status</h4>
+                            <p-dropdown [options]="bidStatusesOptions" [showClear]="true" formControlName="Status"
+                            placeholder="Select Bid Status" autoWidth="false" [style]="{'width':'100%'}">
+                            </p-dropdown>
+                        </div>
+                    </div>
+                    <div class="row p-2" *ngIf="status == bidStatus.NoBid">
+                        <div class="col-12 p-1">
+                            <h4>Reason For No Bid</h4>
+                            <textarea [rows]="2" [cols]="100" pInputTextarea [autoResize]="true" placeholder="Reason For No Bid"
+                            formControlName="NoBidReason" [style]="{'width':'100%'}"></textarea>
+                        </div>
+                    </div>
+                    <div class="row p-2">
+                        <div class="col-md-4 col-xs-12 p-1">
+                            <h4>Start Of Bid Operation</h4>
+                            <mat-form-field appearance="outline">
+                                <input matInput formControlName="BidOperationStart" [matDatepicker]="bidStartDatePicker">
+                                <mat-datepicker-toggle matIconSuffix [for]="bidStartDatePicker"></mat-datepicker-toggle>
+                                <mat-datepicker #bidStartDatePicker></mat-datepicker>
+                              </mat-form-field>
+                        </div>
+                        <div class="col-md-4 col-xs-12 p-1">
+                            <h4>Estimated End Of Bid Operation</h4>
+                            <mat-form-field appearance="outline">
+                                <input matInput formControlName="BidEstimatedOperationEnd" [matDatepicker]="bidEstimatedOperationEndPicker">
+                                <mat-datepicker-toggle matIconSuffix [for]="bidEstimatedOperationEndPicker"></mat-datepicker-toggle>
+                                <mat-datepicker #bidEstimatedOperationEndPicker></mat-datepicker>
+                              </mat-form-field>
+                        </div>
+                        <div class="col-md-4 col-xs-12 p-1">
+                            <ng-container *ngIf="isEdit && stage == projectStage.Approved">
+                                <h4>Start Of Bid Operation</h4>
+                                <p-calendar formControlName="ApprovalDate" dateFormat="dd-mm-yy" [showIcon]="true"></p-calendar>
+                            </ng-container>
+                        </div>
+                    </div>
+                </p-card>
+                <p-card header="Financial Details" styleClass="p-2">
+                    <div class="row p-2">
+                        <div class="col-md-4 col-xs-12 p-1">
+                            <h4>Currency</h4>
+                            <p-dropdown [options]="currencies" formControlName="Currency" [readonly]="true"
+                            placeholder="Currency" [dropdownIcon]="'none'" autoWidth="false" [style]="{'width':'100%'}" appendTo="body">
+                                <ng-template let-item pTemplate="selectedItem">
+                                    <div *ngIf="item">
+                                        <div class="d-inline">
+                                            ({{item.code}}) {{item.name}}
+                                        </div>
+                                    </div>
+                                </ng-template>
+                                <ng-template let-currency pTemplate="item">
+                                    <div class="d-inline">
+                                        ({{currency.code}}) {{currency.name}}
+                                    </div>
+                                </ng-template>
+                            </p-dropdown>
+                        </div>
+                        <div class="col-md-8 col-xs-12 p-2"></div>
+                    </div>
+                    <div class="row p-2">
+                        <div class="col-md-4 col-xs-12 p-1">
+                            <h4>Estimated Total Ebit</h4>
+                            <p-inputNumber placeholder="Estimated Total Ebit" formControlName="TotalEbit" [showButtons]="true" [step]="0.10"
+                            mode="decimal" [maxFractionDigits]="2" [min]="0"></p-inputNumber>
+                        </div>
+                        <div class="col-md-4 col-xs-12 p-2">
+                            <h4>Estimated Total Capex</h4>
+                            <p-inputNumber placeholder="Estimated Total Capex" formControlName="TotalCapex" [showButtons]="true" [step]="0.10"
+                            mode="decimal" [maxFractionDigits]="2" [min]="0"></p-inputNumber>
+                        </div>
+                        <div class="col-md-4 col-xs-12 p-2">
+                            <h4>Estimated Total Opex</h4>
+                            <p-inputNumber placeholder="Estimated Total Opex" formControlName="TotalOpex" [showButtons]="true" [step]="0.10"
+                            mode="decimal" [maxFractionDigits]="2" [min]="0"></p-inputNumber>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <h2>Estimations</h2>
+                    </div>
+                    <ng-container formArrayName="Estimations">
+                        <ng-container *ngFor="let estimationForm of estimations.controls; let i = index">
+                            <div class="row p-2" [formGroupName]="i">
+                                <div class="col-md-3 col-xs-12 p-3 text-center year-section">
+                                    <button mat-fab color="warn" matTooltip="Delete" class="delete-year-button" 
+                                    *ngIf="i == estimations.controls.length-1" (click)="removeEstimation(i)">
+                                        <mat-icon>delete</mat-icon>
+                                    </button>
+                                    <b>{{years[i]}}</b>
+                                </div>
+                                <div class="col-md-3 col-xs-4 p-3">
+                                    <h5>Ebit for {{years[i]}}</h5>
+                                    <p-inputNumber [placeholder]="'Ebit for ' + years[i]" formControlName="EbitValue" [showButtons]="true" [step]="0.10"
+                                    mode="decimal" styleClass="financial-data-input" [allowEmpty]="false" [maxFractionDigits]="2" [min]="0"></p-inputNumber>
+                                </div>
+                                <div class="col-md-3 col-xs-4 p-3">
+                                    <h5>Capex for {{years[i]}}</h5>
+                                    <p-inputNumber [placeholder]="'Capex for ' + years[i]" formControlName="CapexValue" [showButtons]="true" [step]="0.10"
+                                    mode="decimal" styleClass="financial-data-input" [allowEmpty]="false" [maxFractionDigits]="2" [min]="0"></p-inputNumber>
+                                </div>
+                                <div class="col-md-3 col-xs-4 p-3">
+                                    <h5>Opex for {{years[i]}}</h5>
+                                    <p-inputNumber [placeholder]="'Opex for ' + years[i]" formControlName="OpexValue" [showButtons]="true" [step]="0.10"
+                                    mode="decimal" styleClass="financial-data-input" [allowEmpty]="false" [maxFractionDigits]="2" [min]="0"></p-inputNumber>
+                                </div>
+                            </div>
+                        </ng-container>
+                    </ng-container>
+                    <div class="row p-2">
+                        <button mat-fab color="primary" matTooltip="Add Year" (click)="addNewEstimation()">
+                            <mat-icon>add</mat-icon>
+                        </button>
+                    </div>
+                </p-card>
+            </div>
+        </div>
+    </form>
+</div>

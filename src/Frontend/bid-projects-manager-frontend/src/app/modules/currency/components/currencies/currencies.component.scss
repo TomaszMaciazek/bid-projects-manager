@@ -1,0 +1,73 @@
+@import "variables";
+
+.main-card{
+    padding: 10px 2% 10px 2%;
+    height: 100%;
+    background-color: #fff;
+}
+
+table {
+    width: 100%;
+}
+
+.header-row{
+    padding: 10px;
+}
+
+.filters{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.functional-buttons{
+    gap: 10px;
+    display: flex;
+    flex-direction: row;
+}
+
+.mat-header-row , .mat-mdc-header-row {
+    background-color: $table-header-background;
+    .mat-header-cell, .mat-mdc-header-cell{
+        font-size: 15px;
+        color: white;
+        text-align: center;
+        &:first-child{
+            border-top-left-radius: 5px;
+        }
+        &:last-child{
+            border-top-right-radius: 5px;
+        }
+    }
+}
+
+:host ::ng-deep{
+    .mat-sort-header-container {
+    display: flex;
+    justify-content: center;
+    }
+    
+    .mat-sort-header-arrow {
+    color: $white;
+    }
+} 
+
+::ng-deep{
+    .p-sidebar-content{
+        flex: 1;
+    }
+
+    .p-sidebar{
+        min-width: 25rem;
+    }
+}
+
+.sidebar-button-div{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mat-column-actions, .mat-mdc-cell{
+    text-align: center;
+}

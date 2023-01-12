@@ -1,0 +1,40 @@
+<p-dialog header="Edit Country"
+[(visible)]="visible" (onHide)="onHide()"
+[style]="{width: '40vw'}">
+    <form [formGroup]="form">
+        <div class="item-form-fields">
+            <div class="p-2">
+                <h4>Name</h4>
+                <input type="text" pInputText formControlName="Name" [style]="{'width':'100%'}">
+            </div>
+            <div class="p-2">
+                <h4>Code</h4>
+                <input type="text" pInputText formControlName="Code" [style]="{'width':'100%', 'text-transform': 'uppercase'}" maxlength="3">
+            </div>
+            <div class="p-2">
+                <h4>Currency</h4>
+                <p-dropdown [options]="currencies" [showClear]="true" formControlName="Currency" placeholder="Select Currency"
+                    autoWidth="false" [style]="{'width':'100%'}" filterBy="name,code" appendTo="body" [filter]="true">
+                    <ng-template let-item pTemplate="selectedItem">
+                        <div *ngIf="item">
+                            <div class="d-inline">
+                                ({{item.code}}) {{item.name}}
+                            </div>
+                        </div>
+                    </ng-template>
+                    <ng-template let-currency pTemplate="item">
+                        <div class="d-inline">
+                            ({{currency.code}}) {{currency.name}}
+                        </div>
+                    </ng-template>
+                </p-dropdown>
+            </div>
+        </div>
+    </form>
+    <ng-template pTemplate="footer">
+        <div class="action-buttons">
+            <p-button type="text" (click)="reset()" icon="pi pi-refresh" class="" styleClass="p-button-danger" label="Clear"></p-button>
+            <p-button type="text" (click)="submit()" icon="pi pi-check" class="" styleClass="p-button-primary" label="Save"></p-button>
+          </div>
+    </ng-template>
+</p-dialog>

@@ -17,6 +17,10 @@ namespace BidProjectsManager.DataLayer
         public DbSet<Currency> Currencies { get; set; }
         public DbSet<Project> Projects { get; set; }
         public DbSet<ProjectComment> Comments { get; set; }
+        public DbSet<User> Users { get; set; }
+        public DbSet<DictionaryType> DictionaryTypes { get; set; }
+        public DbSet<DictionaryValue> DictionaryValues { get; set; }
+
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
         }
@@ -28,17 +32,20 @@ namespace BidProjectsManager.DataLayer
             builder.Entity<BidCapex>()
                 .HasOne(c => c.Project)
                 .WithMany(p => p.Capexes)
-                .HasForeignKey(c => c.ProjectId);
+                .HasForeignKey(c => c.ProjectId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<BidEbit>()
                 .HasOne(c => c.Project)
                 .WithMany(p => p.Ebits)
-                .HasForeignKey(c => c.ProjectId);
+                .HasForeignKey(c => c.ProjectId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<BidOpex>()
                 .HasOne(c => c.Project)
                 .WithMany(p => p.Opexes)
-                .HasForeignKey(c => c.ProjectId);
+                .HasForeignKey(c => c.ProjectId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<Country>()
                 .HasMany(c => c.Projects)
@@ -52,13 +59,49 @@ namespace BidProjectsManager.DataLayer
 
             builder.Entity<Currency>()
                 .HasMany(c => c.Projects)
-                .WithOne(p => p.Currency)
-                .HasForeignKey(c => c.CurrencyId);
+                .WithOne(p => p.ProjectCurrency)
+                .HasForeignKey(c => c.CurrencyId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.Entity<Project>()
                 .HasMany(c => c.Comments)
-                .WithOne(p => p.Project);
+                .WithOne(p => p.Project)
+                .HasForeignKey(c => c.ProjectId)
+                .OnDelete(DeleteBehavior.Cascade);
 
+            builder.Entity<User>()
+                .HasMany(x => x.Countries)
+                .WithMany(c => c.Users)
+                .UsingEntity(join => join.ToTable("UserCountries"));
+
+            builder.Entity<BidOpex>()
+                .Property(x => x.Value)
+                .HasPrecision(18, 4);
+
+            builder.Entity<BidCapex>()
+                .Property(x => x.Value)
+                .HasPrecision(18, 4);
+
+            builder.Entity<BidEbit>()
+                .Property(x => x.Value)
+                .HasPrecision(18, 4);
+
+            builder.Entity<Project>()
+                .Property(x => x.TotalCapex)
+                .HasPrecision(18, 4);
+
+            builder.Entity<Project>()
+                .Property(x => x.TotalEbit)
+                .HasPrecision(18, 4);
+
+            builder.Entity<Project>()
+                .Property(x => x.TotalOpex)
+                .HasPrecision(18, 4);
+
+            builder.Entity<DictionaryType>()
+                .HasMany(x => x.Values)
+                .WithOne(x => x.Type)
+                .HasForeignKey(x => x.DictionaryTypeId);
         }
     }
 }

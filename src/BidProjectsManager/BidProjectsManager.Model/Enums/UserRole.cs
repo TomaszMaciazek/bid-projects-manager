@@ -4,6 +4,7 @@
     {
         Reader = 0,
         Editor = 1,
-        Administrator = 2
+        Reviewer = 2,
+        Administrator = 3
     }
 }

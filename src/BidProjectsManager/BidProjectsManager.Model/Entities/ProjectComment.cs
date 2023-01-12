@@ -13,6 +13,8 @@ namespace BidProjectsManager.Model.Entities
 
         [Required]
         public string Content { get; set; }
+        [Required]
+        public int ProjectId { get; set; }
         public Project Project { get; set; }
     }
 }

@@ -15,6 +15,12 @@ namespace BidProjectsManager.DataLayer
             services.AddScoped<ICountryRepository, CountryRepository>();
             services.AddScoped<ICurrencyRepository, CurrencyRepository>();
             services.AddScoped<IProjectRepository, ProjectRepository>();
+            services.AddScoped<IProjectCommentRepository, ProjectCommentRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<ICapexRepository, CapexRepository>();
+            services.AddScoped<IEbitRepository, EbitRepository>();
+            services.AddScoped<IOpexRepository, OpexRepository>();
+            services.AddTransient<IDataInitializer, DataInitializer>();
             return services;
         }
     }

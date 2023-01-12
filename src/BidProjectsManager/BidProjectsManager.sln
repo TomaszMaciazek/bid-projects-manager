@@ -3,13 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33110.190
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BidProjectsManager.API", "BidProjectsManager.API\BidProjectsManager.API.csproj", "{E55B8E6E-B352-4EDE-BDA2-8E28A54AE657}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BidProjectsManager.API", "BidProjectsManager.API\BidProjectsManager.API.csproj", "{E55B8E6E-B352-4EDE-BDA2-8E28A54AE657}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BidProjectsManager.Model", "BidProjectsManager.Model\BidProjectsManager.Model.csproj", "{6AC9EB98-5922-4DB8-A716-0D19B198F1C3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BidProjectsManager.Model", "BidProjectsManager.Model\BidProjectsManager.Model.csproj", "{6AC9EB98-5922-4DB8-A716-0D19B198F1C3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BidProjectsManager.Logic", "BidProjectsManager.Logic\BidProjectsManager.Logic.csproj", "{3AF4AED7-CFE5-4E3A-A3C8-08B79F7FD6A5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BidProjectsManager.Logic", "BidProjectsManager.Logic\BidProjectsManager.Logic.csproj", "{3AF4AED7-CFE5-4E3A-A3C8-08B79F7FD6A5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BidProjectsManager.DataLayer", "BidProjectsManager.DataLayer\BidProjectsManager.DataLayer.csproj", "{E83D26FC-3455-4652-8A97-D3B0179896C6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BidProjectsManager.DataLayer", "BidProjectsManager.DataLayer\BidProjectsManager.DataLayer.csproj", "{E83D26FC-3455-4652-8A97-D3B0179896C6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BidProjectsManager.Validation", "BidProjectsManager.Validation\BidProjectsManager.Validation.csproj", "{EC1E538B-87D7-4414-A135-B44CD744A3A0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BidProjectsManager.Mappings", "BidProjectsManager.Mappings\BidProjectsManager.Mappings.csproj", "{C976315F-6106-43EF-8B56-649EAAC84106}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +37,14 @@ Global
 		{E83D26FC-3455-4652-8A97-D3B0179896C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E83D26FC-3455-4652-8A97-D3B0179896C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E83D26FC-3455-4652-8A97-D3B0179896C6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC1E538B-87D7-4414-A135-B44CD744A3A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC1E538B-87D7-4414-A135-B44CD744A3A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC1E538B-87D7-4414-A135-B44CD744A3A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC1E538B-87D7-4414-A135-B44CD744A3A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C976315F-6106-43EF-8B56-649EAAC84106}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C976315F-6106-43EF-8B56-649EAAC84106}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C976315F-6106-43EF-8B56-649EAAC84106}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C976315F-6106-43EF-8B56-649EAAC84106}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

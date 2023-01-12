@@ -1,0 +1,28 @@
+@import 'variables';
+
+.toolbar-item-spacer {
+    flex: 1 1 auto;
+}
+
+.app-container {
+    height: 90%;
+    margin: 0;
+}  
+.app-sidenav {
+    width: 230px;
+    background-color: $app-background-color;
+
+    .mat-list-item-icon {
+        color: rgba(0, 0, 0, 0.76);
+    }
+
+    .mat-expansion-panel{
+        background-color: $app-background-color;
+    }
+
+}
+
+.main-content{
+    height: 100vh;
+    background-color: $app-background-color;
+}

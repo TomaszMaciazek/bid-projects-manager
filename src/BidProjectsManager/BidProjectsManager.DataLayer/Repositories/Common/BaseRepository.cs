@@ -20,6 +20,11 @@ namespace BidProjectsManager.DataLayer.Repositories.Common
             _context.Set<T>().Add(entity);
         }
 
+        public void AddRange(IEnumerable<T> entities)
+        {
+            _context.Set<T>().AddRange(entities);
+        }
+
         public void Update(T entity)
         {
             _context.Set<T>().Update(entity);
@@ -29,6 +34,11 @@ namespace BidProjectsManager.DataLayer.Repositories.Common
         {
             T entity = new() { Id = id };
             _context.Set<T>().Remove(entity);
+        }
+
+        public void RemoveRange(IEnumerable<T> entities)
+        {
+            _context.Set<T>().RemoveRange(entities);
         }
 
         public async Task SaveChangesAsync()

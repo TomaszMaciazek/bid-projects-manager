@@ -1,0 +1,51 @@
+/* Importing Bootstrap SCSS file. */
+@import 'bootstrap/scss/bootstrap';
+
+@import "variables";
+
+html { height: 100%; overflow: hidden; }
+body { height: 100%; margin: 100; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+.wrapper{
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    gap: 10px;
+
+    .wrapper-row{
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+    }
+
+    .wrapper-column{
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+}
+
+.paginator{
+    flex-grow: 1;
+    align-items: flex-end;
+}
+
+:host ::ng-deep .p-multiselect {
+    min-width: 10rem;
+}
+
+.item-form-fields{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.mat-row:nth-child(2n), .mat-mdc-row:nth-child(2n) {
+    background-color: $even-row-background;
+}
+
+.sidebar-buttons{
+    display: flex;
+    align-self: flex-end;
+    gap: 10px;
+}

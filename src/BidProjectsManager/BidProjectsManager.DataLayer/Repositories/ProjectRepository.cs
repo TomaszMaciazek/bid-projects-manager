@@ -22,5 +22,7 @@ namespace BidProjectsManager.DataLayer.Repositories
             .Include(x => x.Opexes)
             .Include(x => x.Comments)
             .Where(x => x.Id == id);
+
+
     }
 }

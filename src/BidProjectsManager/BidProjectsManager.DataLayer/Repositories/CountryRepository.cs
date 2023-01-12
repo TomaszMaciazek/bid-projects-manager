@@ -3,7 +3,7 @@ using BidProjectsManager.Model.Entities;
 
 namespace BidProjectsManager.DataLayer.Repositories
 {
-    public interface ICountryRepository : IReadOnlyRepository<Country> { }
+    public interface ICountryRepository : IRepository<Country> { }
 
     public class CountryRepository : BaseRepository<Country>, ICountryRepository
     {

@@ -1,0 +1,78 @@
+<p-confirmDialog header="Confirmation" icon="pi pi-exclamation-triangle"></p-confirmDialog>
+<div class="main-card">
+    <add-currency [visible]="displayCreateCurrencyDialog" (currencyCreated)="reload()" (onClose)="displayCreateCurrencyDialog = false"></add-currency>
+    <edit-currency #editCurrency [visible]="displayEditCurrencyDialog" (currencyUpdated)="reload()" (onClose)="displayEditCurrencyDialog= false"></edit-currency>
+    <p-sidebar [(visible)]="showFilters" appendTo="body" position="right" [baseZIndex]="10000">
+      <ng-template pTemplate="header">
+        <h1 style="font-weight:normal">Filters</h1>
+      </ng-template>
+      <ng-template pTemplate="content">
+        <div class="filters p-2">
+          <div>
+            <h4>Currency Name</h4>
+            <input type="text" pInputText [(ngModel)]="nameFilter" placeholder="Enter Phrase" [style]="{'width': '100%'}"/> 
+          </div>
+          <div class="sidebar-buttons">
+            <p-button type="text" (click)="resetFilters()" icon="pi pi-refresh" class="" styleClass="p-button-danger" label="Clear Filters"></p-button>
+            <p-button type="text" (click)="search()" icon="pi pi-search" class="" styleClass="p-button-primary" label="Search"></p-button>
+          </div>
+        </div>
+      </ng-template>
+    </p-sidebar>
+    <div class="wrapper">
+      <header class="wrapper-row header-row">
+        <h1 style="font-weight: 600;">Currencies</h1>
+      </header>
+      <p-toolbar>
+        <div class="p-toolbar-group-start">
+          <p-button type="text" (click)="showFilters = true" icon="pi pi-eye" label="Show filters"></p-button>
+        </div>
+  
+        <div class="p-toolbar-group-start functional-buttons">
+          <p-button icon="pi pi-plus" styleClass="p-button-success" label="New Currency" (click)="displayCreateCurrencyDialog = true"></p-button>
+        </div>
+      </p-toolbar>
+      <div class="wrapper-row table-content">
+        <table class="mat-elevation-z8" *ngIf="currencies && currencies.length > 0" mat-table [dataSource]="currencies" matSort (matSortChange)="currencySort($event)">
+      
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+            <td mat-cell *matCellDef="let currency">
+              {{currency.name}}</td>
+          </ng-container>
+      
+          <ng-container matColumnDef="code">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Code</th>
+            <td mat-cell *matCellDef="let currency">
+              {{currency.code}}</td>
+          </ng-container>
+    
+  
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let currency">
+              <button mat-icon-button matTooltip="Edit" (click)="showEditDialog(currency.id)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button matTooltip="Delete" *ngIf="currency.isDeletable" (click)="deleteCurrency(currency.id)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+      
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+  
+      </div>
+      <div class="wrapper-row paginator" *ngIf="currencies && currencies.length > 0">
+        <mat-paginator *ngIf="currencies && currencies.length > 0" #paginator [pageSize]="pageSize" [pageSizeOptions]="pageSizeOptions"
+          [length]="length" [pageIndex]="pageIndex"
+          (page)="handlePage($event)" style="width: 100%;">
+        </mat-paginator>
+      </div>
+      <div *ngIf="currencies == null || currencies.length == 0">
+        <h2>No currencies found</h2>
+      </div>
+    </div>
+</div>

@@ -1,0 +1,37 @@
+@import "variables";
+
+.main-card{
+    padding: 10px 2% 10px 2%;
+    background-color: $gray;
+}
+
+#project-form{
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.year-section{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.delete-year-button{
+    position: absolute;
+    top: 50%;  /* position the top  edge of the element at the middle of the parent */
+    left: 0%; /* position the left edge of the element at the middle of the parent */
+
+    transform: translate(0%, -50%); /* This is a shorthand of
+                                         translateX(-50%) and translateY(-50%) */
+}
+::ng-deep .financial-data-input input {
+    max-width: 120px !important;
+}
+
+.functional-buttons{
+    gap: 10px;
+    display: flex;
+    flex-direction: row;
+}

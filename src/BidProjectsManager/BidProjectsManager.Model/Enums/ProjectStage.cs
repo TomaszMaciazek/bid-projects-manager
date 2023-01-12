@@ -2,8 +2,9 @@
 {
     public enum ProjectStage
     {
-        Draft = 0,
-        Submited = 1,
-        Approved = 2
+        Draft = 1,
+        Submited = 2,
+        Approved = 3,
+        Rejected = 4
     }
 }

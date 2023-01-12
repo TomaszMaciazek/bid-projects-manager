@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BidProjectsManager.Model.Entities
 {
@@ -6,8 +7,7 @@ namespace BidProjectsManager.Model.Entities
     {
         [Required]
         public int Year { get; set; }
-        [Required]
-        public decimal Value { get; set; }
+        public decimal? Value { get; set; }
         [Required]
         public int ProjectId { get; set; }
         public Project Project { get; set; }
