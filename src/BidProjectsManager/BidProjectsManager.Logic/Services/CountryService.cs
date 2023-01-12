@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using BidProjectsManager.DataLayer.Common;
 using BidProjectsManager.DataLayer.Repositories;
 using BidProjectsManager.Logic.Extensions;
 using BidProjectsManager.Logic.Result;
@@ -24,14 +25,14 @@ namespace BidProjectsManager.Logic.Services
 
     public class CountryService : ICountryService
     {
-        private readonly ICountryRepository _countryRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IValidator<CreateCountryCommand> _createCountryValidator;
         private readonly IValidator<UpdateCountryCommand> _updateCountryValidator;
         private readonly IMapper _mapper;
 
-        public CountryService(ICountryRepository countryRepository, IValidator<CreateCountryCommand> createCountryValidator, IValidator<UpdateCountryCommand> updateCountryValidator, IMapper mapper)
+        public CountryService(IUnitOfWork unitOfWork, IValidator<CreateCountryCommand> createCountryValidator, IValidator<UpdateCountryCommand> updateCountryValidator, IMapper mapper)
         {
-            _countryRepository = countryRepository;
+            _unitOfWork = unitOfWork;
             _createCountryValidator = createCountryValidator;
             _updateCountryValidator = updateCountryValidator;
             _mapper = mapper;
@@ -39,7 +40,7 @@ namespace BidProjectsManager.Logic.Services
 
         public async Task<PaginatedList<CountryListItemDto>> GetCountriesAsync(CountryQuery query)
         {
-            var countries = _countryRepository.GetAll().Include(x => x.Projects)
+            var countries = _unitOfWork.CountryRepository.GetAll().Include(x => x.Projects)
                 .AsNoTracking();
 
             countries = !string.IsNullOrEmpty(query.Name) 
@@ -68,7 +69,7 @@ namespace BidProjectsManager.Logic.Services
         }
 
         public async Task<IList<CountryDto>> GetAllCountriesAsync()
-            => await _countryRepository.GetAll().ProjectTo<CountryDto>(_mapper.ConfigurationProvider).ToListAsync();
+            => await _unitOfWork.CountryRepository.GetAll().ProjectTo<CountryDto>(_mapper.ConfigurationProvider).ToListAsync();
 
         public async Task<bool> CreateCountryAsync(CreateCountryCommand command)
         {
@@ -83,8 +84,8 @@ namespace BidProjectsManager.Logic.Services
                         CurrencyId = command.CurrencyId,
                         Name = command.Name
                     };
-                    _countryRepository.Add(country);
-                    await _countryRepository.SaveChangesAsync();
+                    _unitOfWork.CountryRepository.Add(country);
+                    await _unitOfWork.SaveChangesAsync();
                     return true;
                 }
                 return false;
@@ -102,12 +103,12 @@ namespace BidProjectsManager.Logic.Services
                 var validationResult = await _updateCountryValidator.ValidateAsync(command);
                 if (validationResult.IsValid)
                 {
-                    var country = await _countryRepository.GetById(command.Id).FirstOrDefaultAsync();
+                    var country = await _unitOfWork.CountryRepository.GetById(command.Id).FirstOrDefaultAsync();
                     country.Name = command.Name;
                     country.Code = command.Code.ToUpper();
                     country.CurrencyId = command.CurrencyId;
-                    _countryRepository.Update(country);
-                    await _countryRepository.SaveChangesAsync();
+                    _unitOfWork.CountryRepository.Update(country);
+                    await _unitOfWork.SaveChangesAsync();
                     return true;
                 }
                 return false;
@@ -122,13 +123,13 @@ namespace BidProjectsManager.Logic.Services
         {
             try
             {
-                var existProjectsWithThisCountry = await _countryRepository.GetById(id).Include(x => x.Projects).Select(x => x.Projects.Any()).FirstOrDefaultAsync();
+                var existProjectsWithThisCountry = await _unitOfWork.CountryRepository.GetById(id).Include(x => x.Projects).Select(x => x.Projects.Any()).FirstOrDefaultAsync();
                 if (existProjectsWithThisCountry)
                 {
                     return false;
                 }
-                _countryRepository.Delete(id);
-                await _countryRepository.SaveChangesAsync();
+                _unitOfWork.CountryRepository.Delete(id);
+                await _unitOfWork.SaveChangesAsync();
                 return true;
             }
             catch (Exception)

@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
-using BidProjectsManager.DataLayer.Repositories;
+using BidProjectsManager.DataLayer.Common;
 using BidProjectsManager.Logic.Extensions;
 using BidProjectsManager.Logic.Result;
 using BidProjectsManager.Model.Commands;
@@ -10,7 +10,6 @@ using BidProjectsManager.Model.Enums;
 using BidProjectsManager.Model.Queries;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
-using System.Runtime.CompilerServices;
 
 namespace BidProjectsManager.Logic.Services
 {
@@ -25,14 +24,14 @@ namespace BidProjectsManager.Logic.Services
 
     public class CurrencyService : ICurrencyService
     {
-        private readonly ICurrencyRepository _currencyRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IValidator<CreateCurrencyCommand> _createCurrencyValidator;
         private readonly IValidator<UpdateCurrencyCommand> _updateCurrencyValidator;
         private readonly IMapper _mapper;
 
-        public CurrencyService(ICurrencyRepository currencyRepository, IValidator<CreateCurrencyCommand> createCurrencyValidator, IValidator<UpdateCurrencyCommand> updateCurrencyValidator, IMapper mapper)
+        public CurrencyService(IUnitOfWork unitOfWork, IValidator<CreateCurrencyCommand> createCurrencyValidator, IValidator<UpdateCurrencyCommand> updateCurrencyValidator, IMapper mapper)
         {
-            _currencyRepository = currencyRepository;
+            _unitOfWork = unitOfWork;
             _createCurrencyValidator = createCurrencyValidator;
             _updateCurrencyValidator = updateCurrencyValidator;
             _mapper = mapper;
@@ -40,7 +39,7 @@ namespace BidProjectsManager.Logic.Services
 
         public async Task<PaginatedList<CurrencyListItemDto>> GetCurrencies(CurrencyQuery query)
         {
-            var currencies = _currencyRepository.GetAll().Include(x => x.Countries).AsNoTracking();
+            var currencies = _unitOfWork.CurrencyRepository.GetAll().Include(x => x.Countries).AsNoTracking();
 
             currencies = !string.IsNullOrEmpty(query.Name)
                 ? currencies.Where(x => x.Name.ToLower().Contains(query.Name.ToLower()))
@@ -64,7 +63,7 @@ namespace BidProjectsManager.Logic.Services
         }
 
         public async Task<IList<CurrencyDto>> GetAllCurrenciesAsync()
-            => await _currencyRepository.GetAll().OrderBy(x => x.Code).ProjectTo<CurrencyDto>(_mapper.ConfigurationProvider).ToListAsync();
+            => await _unitOfWork.CurrencyRepository.GetAll().OrderBy(x => x.Code).ProjectTo<CurrencyDto>(_mapper.ConfigurationProvider).ToListAsync();
 
         public async Task<bool> CreateCurrencyAsync(CreateCurrencyCommand command)
         {
@@ -78,8 +77,8 @@ namespace BidProjectsManager.Logic.Services
                         Code = command.Code.ToUpper(),
                         Name = command.Name
                     };
-                    _currencyRepository.Add(currency);
-                    await _currencyRepository.SaveChangesAsync();
+                    _unitOfWork.CurrencyRepository.Add(currency);
+                    await _unitOfWork.SaveChangesAsync();
                     return true;
                 }
                 return false;
@@ -97,11 +96,11 @@ namespace BidProjectsManager.Logic.Services
                 var validationResult = await _updateCurrencyValidator.ValidateAsync(command);
                 if (validationResult.IsValid)
                 {
-                    var currency = await _currencyRepository.GetById(command.Id).FirstOrDefaultAsync();
+                    var currency = await _unitOfWork.CurrencyRepository.GetById(command.Id).FirstOrDefaultAsync();
                     currency.Name = command.Name;
                     currency.Code = command.Code;
-                    _currencyRepository.Update(currency);
-                    await _currencyRepository.SaveChangesAsync();
+                    _unitOfWork.CurrencyRepository.Update(currency);
+                    await _unitOfWork.SaveChangesAsync();
                     return true;
                 }
                 return false;
@@ -116,18 +115,18 @@ namespace BidProjectsManager.Logic.Services
         {
             try
             {
-                var existProjectsWithThisCurrency = await _currencyRepository.GetById(id).Include(x => x.Projects).Select(x => x.Projects.Any()).FirstOrDefaultAsync();
+                var existProjectsWithThisCurrency = await _unitOfWork.CurrencyRepository.GetById(id).Include(x => x.Projects).Select(x => x.Projects.Any()).FirstOrDefaultAsync();
                 if(existProjectsWithThisCurrency)
                 {
                     return false;
                 }
-                var existCountriesWithThisCurrency = await _currencyRepository.GetById(id).Include(x => x.Countries).Select(x => x.Countries.Any()).FirstOrDefaultAsync();
+                var existCountriesWithThisCurrency = await _unitOfWork.CurrencyRepository.GetById(id).Include(x => x.Countries).Select(x => x.Countries.Any()).FirstOrDefaultAsync();
                 if (existCountriesWithThisCurrency)
                 {
                     return false;
                 }
-                _currencyRepository.Delete(id);
-                await _currencyRepository.SaveChangesAsync();
+                _unitOfWork.CurrencyRepository.Delete(id);
+                await _unitOfWork.SaveChangesAsync();
                 return true;
             }
             catch (Exception)

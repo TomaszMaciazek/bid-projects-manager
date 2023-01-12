@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
-using BidProjectsManager.DataLayer.Repositories;
+using BidProjectsManager.DataLayer.Common;
 using BidProjectsManager.Model.Commands;
 using BidProjectsManager.Model.Dto;
 using BidProjectsManager.Model.Entities;
@@ -17,19 +17,19 @@ namespace BidProjectsManager.Logic.Services
 
     public class CommentService : ICommentService
     {
-        private readonly IProjectCommentRepository _projectCommentRepository;
-        private IValidator<CreateCommentCommand> _createCommentCommandValidator;
-        private IMapper _mapper;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IValidator<CreateCommentCommand> _createCommentCommandValidator;
+        private readonly IMapper _mapper;
 
-        public CommentService(IProjectCommentRepository projectCommentRepository, IValidator<CreateCommentCommand> createCommentCommandValidator, IMapper mapper)
+        public CommentService(IUnitOfWork unitOfWork, IValidator<CreateCommentCommand> createCommentCommandValidator, IMapper mapper)
         {
-            _projectCommentRepository = projectCommentRepository;
+            _unitOfWork = unitOfWork;
             _createCommentCommandValidator = createCommentCommandValidator;
             _mapper = mapper;
         }
 
         public async Task<IList<CommentDto>> GetCommentsFromProjectAsync(int projectId)
-            => await _projectCommentRepository.GetAll().AsNoTracking()
+            => await _unitOfWork.ProjectCommentRepository.GetAll().AsNoTracking()
             .Where(x => x.ProjectId == projectId)
             .ProjectTo<CommentDto>(_mapper.ConfigurationProvider)
             .ToListAsync();
@@ -46,8 +46,8 @@ namespace BidProjectsManager.Logic.Services
                     ProjectId = command.ProjectId
                 };
 
-                _projectCommentRepository.Add(comment);
-                await _projectCommentRepository.SaveChangesAsync();
+                _unitOfWork.ProjectCommentRepository.Add(comment);
+                await _unitOfWork.SaveChangesAsync();
                 return true;
             }
             return false;

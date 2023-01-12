@@ -1,4 +1,5 @@
-﻿using BidProjectsManager.DataLayer.Repositories;
+﻿using BidProjectsManager.DataLayer.Common;
+using BidProjectsManager.DataLayer.Repositories;
 using BidProjectsManager.Model.Commands;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -7,26 +8,26 @@ namespace BidProjectsManager.Validation.Validators
 {
     public class SubmitProjectCommandValidator : AbstractValidator<SubmitProjectCommand>
     {
-        public SubmitProjectCommandValidator(IProjectRepository projectRepository, ICountryRepository countryRepository, ICurrencyRepository currencyRepository) {
+        public SubmitProjectCommandValidator(IUnitOfWork unitOfWork) {
 
             RuleFor(c => c)
                 .NotEmpty()
                 .MustAsync(async (cmd, cancelationToken) => {
-                    return !await projectRepository.GetAll().AnyAsync(x => x.Name == cmd.Name && x.Id != cmd.Id, cancellationToken: cancelationToken);
+                    return !await unitOfWork.ProjectRepository.GetAll().AnyAsync(x => x.Name == cmd.Name && x.Id != cmd.Id, cancellationToken: cancelationToken);
                 });
 
             RuleFor(c => c.CurrencyId)
                 .NotEmpty()
                 .MustAsync(async (currencyId, cancelationToken) =>
                 {
-                    return !await currencyRepository.GetAll().AnyAsync(x => x.Id == currencyId, cancellationToken: cancelationToken);
+                    return !await unitOfWork.CurrencyRepository.GetAll().AnyAsync(x => x.Id == currencyId, cancellationToken: cancelationToken);
                 });
 
             RuleFor(c => c.CountryId)
                 .NotEmpty()
                 .MustAsync(async (countryId, cancelationToken) =>
                 {
-                    return !await countryRepository.GetAll().AnyAsync(x => x.Id == countryId, cancellationToken: cancelationToken);
+                    return !await unitOfWork.CountryRepository.GetAll().AnyAsync(x => x.Id == countryId, cancellationToken: cancelationToken);
                 });
 
             RuleFor(c => c.NumberOfVechicles).NotEmpty();

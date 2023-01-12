@@ -1,4 +1,4 @@
-﻿using BidProjectsManager.DataLayer.Repositories;
+﻿using BidProjectsManager.DataLayer.Common;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,15 +11,7 @@ namespace BidProjectsManager.DataLayer
         {
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")), ServiceLifetime.Transient, ServiceLifetime.Singleton);
-
-            services.AddScoped<ICountryRepository, CountryRepository>();
-            services.AddScoped<ICurrencyRepository, CurrencyRepository>();
-            services.AddScoped<IProjectRepository, ProjectRepository>();
-            services.AddScoped<IProjectCommentRepository, ProjectCommentRepository>();
-            services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<ICapexRepository, CapexRepository>();
-            services.AddScoped<IEbitRepository, EbitRepository>();
-            services.AddScoped<IOpexRepository, OpexRepository>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddTransient<IDataInitializer, DataInitializer>();
             return services;
         }

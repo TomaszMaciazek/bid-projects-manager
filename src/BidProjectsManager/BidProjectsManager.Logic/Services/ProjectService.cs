@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
-using BidProjectsManager.DataLayer.Repositories;
+using BidProjectsManager.DataLayer.Common;
 using BidProjectsManager.Logic.Extensions;
 using BidProjectsManager.Logic.Result;
 using BidProjectsManager.Model.Commands;
@@ -28,10 +28,7 @@ namespace BidProjectsManager.Logic.Services
 
     public class ProjectService : IProjectService
     {
-        private readonly IProjectRepository _projectRepository;
-        private readonly ICapexRepository _capexRepository;
-        private readonly IEbitRepository _ebitRepository;
-        private readonly IOpexRepository _opexRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IValidator<CreateDraftProjectCommand> _createDraftProjectValidator;
         private readonly IValidator<CreateSubmittedProjectCommand> _createSubmittedProjectValidator;
         private readonly IValidator<UpdateDraftProjectCommand> _updateDraftProjectValidator;
@@ -39,10 +36,7 @@ namespace BidProjectsManager.Logic.Services
         private readonly IMapper _mapper;
 
         public ProjectService(
-            IProjectRepository projectRepository,
-            ICapexRepository capexRepository,
-            IEbitRepository ebitRepository,
-            IOpexRepository opexRepository,
+            IUnitOfWork unitOfWork,
             IValidator<CreateDraftProjectCommand> createDraftProjectValidator,
             IValidator<CreateSubmittedProjectCommand> createSubmittedProjectValidator,
             IValidator<UpdateDraftProjectCommand> updateDraftProjectValidator,
@@ -50,10 +44,7 @@ namespace BidProjectsManager.Logic.Services
             IMapper mapper
             )
         {
-            _projectRepository = projectRepository;
-            _capexRepository = capexRepository;
-            _ebitRepository = ebitRepository;
-            _opexRepository = opexRepository;
+            _unitOfWork = unitOfWork;
             _createDraftProjectValidator = createDraftProjectValidator;
             _createSubmittedProjectValidator = createSubmittedProjectValidator;
             _updateDraftProjectValidator = updateDraftProjectValidator;
@@ -63,7 +54,7 @@ namespace BidProjectsManager.Logic.Services
 
         public async Task<PaginatedList<ProjectListItemDto>> GetProjectsAsync(ProjectQuery query)
         {
-            var projects = _projectRepository.GetAll().AsNoTracking();
+            var projects = _unitOfWork.ProjectRepository.GetAll().AsNoTracking();
 
             projects = !string.IsNullOrEmpty(query.Name)
                 ? projects.Where(x => x.Name.ToLower().Contains(query.Name.ToLower()))
@@ -83,14 +74,14 @@ namespace BidProjectsManager.Logic.Services
 
             if (query.SortOption.HasValue)
             {
-                if(query.SortOption.Value == Model.Enums.ProjectSortOption.IdDescending) {
+                if(query.SortOption.Value == ProjectSortOption.IdDescending) {
                     projects = projects.OrderByDescending(x => x.Id);
                 }
-                else if (query.SortOption.Value == Model.Enums.ProjectSortOption.NameAscending)
+                else if (query.SortOption.Value == ProjectSortOption.NameAscending)
                 {
                     projects = projects.OrderBy(x => x.Name);
                 }
-                else if (query.SortOption.Value == Model.Enums.ProjectSortOption.NameDescending)
+                else if (query.SortOption.Value == ProjectSortOption.NameDescending)
                 {
                     projects = projects.OrderByDescending(x => x.Name);
                 }
@@ -101,7 +92,7 @@ namespace BidProjectsManager.Logic.Services
         }
 
         public async Task<ProjectDto> GetProjectByIdAsync(int id) 
-            => await _projectRepository.GetByIdEager(id)
+            => await _unitOfWork.ProjectRepository.GetByIdEager(id)
             .ProjectTo<ProjectDto>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync();
 
@@ -115,8 +106,8 @@ namespace BidProjectsManager.Logic.Services
                     var project = _mapper.Map<Project>(command);
                     project.CreatedBy = "admin";
                     project.Created = DateTime.Now;
-                    _projectRepository.Add(project);
-                    await _projectRepository.SaveChangesAsync();
+                    _unitOfWork.ProjectRepository.Add(project);
+                    await _unitOfWork.SaveChangesAsync();
                     return true;
                 }
                 return false;
@@ -135,8 +126,8 @@ namespace BidProjectsManager.Logic.Services
                 if (validationResult.IsValid)
                 {
                     var project = _mapper.Map<Project>(command);
-                    _projectRepository.Add(project);
-                    await _projectRepository.SaveChangesAsync();
+                    _unitOfWork.ProjectRepository.Add(project);
+                    await _unitOfWork.SaveChangesAsync();
                     return true;
                 }
                 return false;
@@ -154,7 +145,7 @@ namespace BidProjectsManager.Logic.Services
                 var validationResult = await _updateDraftProjectValidator.ValidateAsync(command);
                 if (validationResult.IsValid)
                 {
-                    var project = await _projectRepository.GetById(command.Id)
+                    var project = await _unitOfWork.ProjectRepository.GetById(command.Id)
                     .FirstOrDefaultAsync();
                     if (project != null)
                     {
@@ -179,8 +170,8 @@ namespace BidProjectsManager.Logic.Services
                         project.TotalEbit = command.TotalEbit;
                         project.TotalOpex = command.TotalOpex;
                         project.Type = command.Type;
-                        _projectRepository.Update(project);
-                        await _projectRepository.SaveChangesAsync();
+                        _unitOfWork.ProjectRepository.Update(project);
+                        await _unitOfWork.SaveChangesAsync();
                         await UpdateProjectFinancialDataFromCommand(command);
                         return true;
                     }
@@ -198,7 +189,7 @@ namespace BidProjectsManager.Logic.Services
             try
             {
                 var validationResult = _submitProjectValidator.Validate(command);
-                var project = await _projectRepository.GetById(command.Id)
+                var project = await _unitOfWork.ProjectRepository.GetById(command.Id)
                     .Include(x => x.Ebits)
                     .Include(x => x.Capexes)
                     .Include(x => x.Opexes)
@@ -206,7 +197,7 @@ namespace BidProjectsManager.Logic.Services
                 if (project != null)
                 {
                     _mapper.Map(command, project);
-                    await _projectRepository.SaveChangesAsync();
+                    await _unitOfWork.SaveChangesAsync();
                     await UpdateProjectFinancialDataFromCommand(command);
                     return true;
                 }
@@ -220,63 +211,85 @@ namespace BidProjectsManager.Logic.Services
 
         public async Task<bool> ApproveProjectAsync(int id)
         {
-            var project = await _projectRepository.GetById(id).FirstOrDefaultAsync();
+            var project = await _unitOfWork.ProjectRepository.GetById(id).FirstOrDefaultAsync();
             if (project == null || project.Stage != ProjectStage.Submited)
             {
                 return false;
             }
             project.Stage = ProjectStage.Approved;
             project.ApprovalDate = DateTime.Now;
-            _projectRepository.Update(project);
-            await _projectRepository.SaveChangesAsync();
+            _unitOfWork.ProjectRepository.Update(project);
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
 
         public async Task<bool> RejectProjectAsync(int id)
         {
-            var project = await _projectRepository.GetById(id).FirstOrDefaultAsync();
+            var project = await _unitOfWork.ProjectRepository.GetById(id).FirstOrDefaultAsync();
             if (project == null || project.Stage != ProjectStage.Submited)
             {
                 return false;
             }
             project.Stage = ProjectStage.Rejected;
-            _projectRepository.Update(project);
-            await _projectRepository.SaveChangesAsync();
+            _unitOfWork.ProjectRepository.Update(project);
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
 
         public async Task<bool> DeleteProjectAsync(int id)
         {
-            var project = await _projectRepository.GetById(id).AsNoTracking().FirstOrDefaultAsync();
+            var project = await _unitOfWork.ProjectRepository.GetById(id).AsNoTracking().FirstOrDefaultAsync();
             if (project == null || project.Stage == ProjectStage.Approved)
             {
                 return false;
             }
-            _projectRepository.Delete(id);
-            await _projectRepository.SaveChangesAsync();
+            _unitOfWork.ProjectRepository.Delete(id);
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
 
         private async Task UpdateProjectFinancialDataFromCommand(BaseUpdateProjectCommand command)
         {
-            var projectEbits = await _ebitRepository.GetAll().Where(x => x.ProjectId == command.Id).ToListAsync();
-            var projectCapexes = await _capexRepository.GetAll().Where(x => x.ProjectId == command.Id).ToListAsync();
-            var projectOpexes = await _opexRepository.GetAll().Where(x => x.ProjectId == command.Id).ToListAsync();
+            var projectEbits = await _unitOfWork.EbitRepository.GetAll().Where(x => x.ProjectId == command.Id).ToListAsync();
+            var projectCapexes = await _unitOfWork.CapexRepository.GetAll().Where(x => x.ProjectId == command.Id).ToListAsync();
+            var projectOpexes = await _unitOfWork.OpexRepository.GetAll().Where(x => x.ProjectId == command.Id).ToListAsync();
 
             var capexesToRemove = projectCapexes.Where(x => command.YearsToRemove.Contains(x.Year));
             var capexesToEdit = projectCapexes.Where(x => command.Capexes.Any(y => y.Id == x.Id));
-            _capexRepository.RemoveRange(capexesToRemove);
-            await _capexRepository.SaveChangesAsync();
             var ebitsToRemove = projectEbits.Where(x => command.YearsToRemove.Contains(x.Year));
             var ebitsToEdit = projectEbits.Where(x => command.Ebits.Any(y => y.Id == x.Id));
-            _ebitRepository.RemoveRange(ebitsToRemove);
-            await _ebitRepository.SaveChangesAsync();
             var opexesToRemove = projectOpexes.Where(x => command.YearsToRemove.Contains(x.Year));
             var opexesToEdit = projectOpexes.Where(x => command.Opexes.Any(y => y.Id == x.Id));
-            _opexRepository.RemoveRange(opexesToRemove);
-            await _opexRepository.SaveChangesAsync();
 
-            _ebitRepository.AddRange(command.NewEbits.Select(ebit => new BidEbit
+            _unitOfWork.OpexRepository.RemoveRange(opexesToRemove);
+            _unitOfWork.EbitRepository.RemoveRange(ebitsToRemove);
+            _unitOfWork.CapexRepository.RemoveRange(capexesToRemove);
+            await _unitOfWork.SaveChangesAsync();
+
+            foreach (var ebit in ebitsToEdit)
+            {
+                var value = command.Ebits.FirstOrDefault(x => x.Id == ebit.Id).Value;
+                ebit.Value = value; ;
+                _unitOfWork.EbitRepository.Update(ebit);
+            }
+
+            foreach (var opex in opexesToEdit)
+            {
+                var value = command.Opexes.FirstOrDefault(x => x.Id == opex.Id).Value;
+                opex.Value = value; ;
+                _unitOfWork.OpexRepository.Update(opex);
+            }
+
+            foreach (var capex in capexesToEdit)
+            {
+                var value = command.Capexes.FirstOrDefault(x => x.Id == capex.Id).Value;
+                capex.Value = value; ;
+                _unitOfWork.CapexRepository.Update(capex);
+            }
+
+            await _unitOfWork.SaveChangesAsync();
+
+            _unitOfWork.EbitRepository.AddRange(command.NewEbits.Select(ebit => new BidEbit
             {
                 Id = 0,
                 ProjectId = command.Id,
@@ -284,9 +297,7 @@ namespace BidProjectsManager.Logic.Services
                 Year = ebit.Year
             }).ToList());
 
-            await _ebitRepository.SaveChangesAsync();
-
-            _capexRepository.AddRange(command.NewCapexes.Select(capex => new BidCapex
+            _unitOfWork.CapexRepository.AddRange(command.NewCapexes.Select(capex => new BidCapex
             {
                 Id = 0,
                 ProjectId = command.Id,
@@ -294,9 +305,7 @@ namespace BidProjectsManager.Logic.Services
                 Year = capex.Year
             }).ToList());
 
-            await _capexRepository.SaveChangesAsync();
-
-            _opexRepository.AddRange(command.NewOpexes.Select(opex => new BidOpex
+            _unitOfWork.OpexRepository.AddRange(command.NewOpexes.Select(opex => new BidOpex
             {
                 Id = 0,
                 ProjectId = command.Id,
@@ -304,30 +313,7 @@ namespace BidProjectsManager.Logic.Services
                 Year = opex.Year
             }).ToList());
 
-            await _opexRepository.SaveChangesAsync();
-
-            foreach (var ebit in ebitsToEdit)
-            {
-                var value = command.Ebits.FirstOrDefault(x => x.Id == ebit.Id).Value;
-                ebit.Value = value; ;
-                _ebitRepository.Update(ebit);
-            }
-
-            foreach (var opex in opexesToEdit)
-            {
-                var value = command.Opexes.FirstOrDefault(x => x.Id == opex.Id).Value;
-                opex.Value = value; ;
-                _opexRepository.Update(opex);
-            }
-
-            foreach (var capex in capexesToEdit)
-            {
-                var value = command.Capexes.FirstOrDefault(x => x.Id == capex.Id).Value;
-                capex.Value = value; ;
-                _capexRepository.Update(capex);
-            }
-
-            await _opexRepository.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
 
         }
     }
