@@ -1,0 +1,57 @@
+<p-confirmDialog header="Confirmation" icon="pi pi-exclamation-triangle"></p-confirmDialog>
+<div class="main-card">
+    <form [formGroup]="form">
+        <div class="wrapper">
+            <header class="wrapper-row header-row p-2">
+                <h1 style="font-weight: 600; font-size: 2rem;">Generate Report</h1>
+            </header>
+
+            <p-toolbar>
+                <div class="p-toolbar-group-start">
+                    <button pButton pRipple (click)="returnToReports()" icon="pi pi-arrow-left" label="Return" class="p-button-raised p-button-secondary p-button-text"></button>
+                </div>
+
+                <div class="p-toolbar-group-start functional-buttons">
+                    <p-button  icon="pi pi-save" styleClass="p-button-success" label="Generate" (onClick)="generate()"></p-button>
+                </div>
+            </p-toolbar>
+
+            <div id="generator-form">
+                <p-card styleClass="p-2">
+                    <div class="row p-2">
+                        <div class="col-md-4 col-xs-12 p-1 form-field">
+                            <h4>Max Rows</h4>
+                            <div>
+                                <p-inputNumber formControlName="MaxRows" inputId="integeronly" [showButtons]="true"
+                                placeholder="Max Rows" autoWidth="false" [min]="0" [style]="{'width':'300px'}"></p-inputNumber>
+                            </div> 
+                        </div>
+                    </div>
+                    <div class="row p-2">
+                        <ng-container formGroupName="Params">
+                            <div *ngFor="let param of params; let i=index" class="col-md-4 col-xs-12 p-1 form-field">
+                                <h4>{{param.caption}} <span *ngIf="param.isRequired"> (Required)</span></h4>
+                                <div *ngIf="param.type == paramType.Dis || param.type == paramType.Lst">
+                                    <p-multiSelect  [options]="param.availableValues"
+                                        [formControlName]="param.name"  placeholder="Select Values"
+                                        autoWidth="false" [style]="{'width':'300px'}"
+                                        optionLabel="label" optionValue="value" display="chip"></p-multiSelect>
+                                </div>
+                                <div *ngIf="param.type == paramType.Dat">
+                                    <p-calendar [formControlName]="param.name" autoWidth="false" [style]="{'width':'300px'}" 
+                                    [showIcon]="true" [showClear]="true" dateFormat="yy-mm-dd">
+
+                                    </p-calendar>
+                                </div>
+                                <div *ngIf="param.type == paramType.Lik">
+                                    <input type="text" pInputText [formControlName]="param.name" autoWidth="false" [style]="{'width':'300px'}"  placeholder="Enter Value" />
+                                </div>
+                            </div>
+                        </ng-container>
+                    </div>
+                    
+                </p-card>
+            </div>
+        </div>
+    </form>
+</div>

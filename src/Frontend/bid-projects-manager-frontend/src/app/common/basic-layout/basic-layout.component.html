@@ -8,11 +8,8 @@
         <mat-icon>account_circle</mat-icon>
     </button>
     <mat-menu #userAccountMenu [overlapTrigger]="false" yPosition="below">
-        <button mat-menu-item routerLink="#">
-            <mat-icon>person</mat-icon><span>My Account</span>
-        </button>
         <mat-divider></mat-divider>
-        <button mat-menu-item routerLink="#">
+        <button mat-menu-item (click)="logout()">
             <mat-icon>exit_to_app</mat-icon>Logout
         </button>
     </mat-menu>
@@ -25,7 +22,7 @@
                 <mat-icon matListItemIcon>list_alt</mat-icon>
                 <div matListItemTitle>Projects</div>
             </mat-list-item>
-            <mat-list-item (click)="addProject()">
+            <mat-list-item *ngIf="isAdmin || isEditor" (click)="addProject()">
                 <mat-icon matListItemIcon>add</mat-icon>
                 <div matListItemTitle>Create Project</div>
             </mat-list-item>
@@ -33,15 +30,11 @@
                 <mat-icon matListItemIcon>assessment</mat-icon>
                 <div matListItemTitle>Reports</div>
             </mat-list-item>
-            <mat-expansion-panel [class.mat-elevation-z0]="true">
+            <mat-expansion-panel [class.mat-elevation-z0]="true" *ngIf="isAdmin">
                 <mat-expansion-panel-header>
                     Administrator Tools
                 </mat-expansion-panel-header>
                 <mat-nav-list>
-                    <a mat-list-item routerLink="/users">
-                        <mat-icon matListItemIcon>supervisor_account</mat-icon>
-                        <div matListItemTitle>Users</div>
-                    </a>
                     <a mat-list-item routerLink="/countries">
                         <mat-icon matListItemIcon>public</mat-icon>
                         <div matListItemTitle>Countries</div>

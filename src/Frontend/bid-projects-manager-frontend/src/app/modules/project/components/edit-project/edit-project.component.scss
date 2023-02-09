@@ -30,8 +30,28 @@
     max-width: 120px !important;
 }
 
+::ng-deep .dropdown-input input {
+    max-width: 200px !important;
+}
+
 .functional-buttons{
     gap: 10px;
     display: flex;
     flex-direction: row;
+}
+
+.custom-marker {
+    display: flex;
+    width: 2rem;
+    height: 2rem;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    border-radius: 50%;
+    z-index: 1;
+}
+
+.form-field{
+    display: flex;
+    flex-direction: column;
 }

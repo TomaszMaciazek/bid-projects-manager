@@ -33,6 +33,7 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { CalendarModule } from 'primeng/calendar';
 import { MatInputModule } from '@angular/material/input';
+import { CheckboxModule } from 'primeng/checkbox';
 
 
 @NgModule({
@@ -73,7 +74,8 @@ import { MatInputModule } from '@angular/material/input';
     FieldsetModule,
     InputNumberModule,
     InputTextareaModule,
-    CalendarModule
+    CalendarModule,
+    CheckboxModule
   ],
   exports: [
     MatTableModule,
@@ -110,7 +112,8 @@ import { MatInputModule } from '@angular/material/input';
     FieldsetModule,
     InputNumberModule,
     InputTextareaModule,
-    CalendarModule
+    CalendarModule,
+    CheckboxModule
   ]
 })
 export class SharedModule { }

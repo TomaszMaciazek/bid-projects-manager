@@ -1,6 +1,8 @@
+import { DatePipe } from '@angular/common';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { KeycloakService } from 'keycloak-angular';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { SelectItem } from 'primeng/api';
 import { BidStatus } from 'src/app/enums/bid-status';
@@ -8,14 +10,17 @@ import { ProjectSortOption } from 'src/app/enums/project-sort-option';
 import { ProjectStage } from 'src/app/enums/project-stage';
 import { Country } from 'src/app/models/country.model';
 import { ProjectListItem } from 'src/app/models/project-list-item.model';
+import { ProjectExportQuery } from 'src/app/queries/project-export-query.model';
 import { ProjectQuery } from 'src/app/queries/project-query.model';
 import { CountryService } from 'src/app/services/country.service';
 import { ProjectService } from 'src/app/services/project.service';
+import { UserService } from 'src/app/services/user.service';
 
 @Component({
   selector: 'app-projects',
   templateUrl: './projects.component.html',
-  styleUrls: ['./projects.component.scss']
+  styleUrls: ['./projects.component.scss'],
+  providers: [DatePipe]
 })
 export class ProjectsComponent implements OnInit {
   public pageSizeOptions = [10, 20, 50, 100];
@@ -34,13 +39,12 @@ export class ProjectsComponent implements OnInit {
 
   public projects: Array<ProjectListItem> = [];
   public countries: Array<Country> = [];
-  private exportFileTitle = 'projects';
 
   public projectStagesOptions : SelectItem[] = [
     {label: 'Draft', value: ProjectStage.Draft},
     {label: 'Submitted', value: ProjectStage.Submitted},
-    {label: 'Approved', value: ProjectStage.Rejected},
-    {label: 'Approved', value: ProjectStage.Rejected}
+    {label: 'Rejected', value: ProjectStage.Rejected},
+    {label: 'Approved', value: ProjectStage.Approved}
   ];
 
   public bidStatusesOptions : SelectItem[] = [
@@ -51,10 +55,12 @@ export class ProjectsComponent implements OnInit {
   ];
 
   constructor(
+    public datepipe: DatePipe,
     private projectService: ProjectService,
     private countryService : CountryService,
     private spinner: NgxSpinnerService,
     private formBuilder: FormBuilder,
+    private keycloakService: KeycloakService,
     private router: Router
     ){}
   
@@ -75,6 +81,28 @@ export class ProjectsComponent implements OnInit {
     this.getProjects(query);
   }
 
+  exportProjects(){
+    this.spinner.show();
+    let query = new ProjectExportQuery({
+      Name : this.form.controls['Name'].value, 
+      Stages : this.form.controls['Stages'].value,
+      Statuses : this.form.controls['Statuses'].value,
+      CountriesIds : this.selectedCountries != null && this.selectedCountries.length > 0
+      ? this.selectedCountries.map(x => x.id)
+      : null,
+      SortOption : this.sortOption
+    });
+    this.projectService.exportProjects(query)
+    .then(res => {
+      this.spinner.hide();
+      let blob = new Blob([res as BlobPart], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = 'Projects' + this.datepipe.transform(new Date(),'dd_MM_yyyy_HH_mm_ss');
+      a.click();
+    });
+  }
+
   addProject(){
     this.router.navigate(['/projects/edit', { id: 0 }]);
   }
@@ -88,6 +116,17 @@ export class ProjectsComponent implements OnInit {
     if(country)
       return country.name;
     return '';
+  }
+
+  getCountryCode(id : number){
+    let country = this.countries.find(x => x.id == id);
+    if(country)
+      return country.code;
+    return '';
+  }
+
+  addLeadingZeros(num: number, totalLength: number): string {
+    return String(num).padStart(totalLength, '0');
   }
   
   handlePage(e: any) {
@@ -174,5 +213,29 @@ export class ProjectsComponent implements OnInit {
       return 1;
     return 0;
   };
+
+  public get isAdmin(){
+    return this.keycloakService.isUserInRole("Administrator");
+  }
+
+  public get isEditor(){
+    return this.keycloakService.isUserInRole("Editor");
+  }
+
+  public canEdit(stage: ProjectStage) : boolean{
+    if(this.keycloakService.isUserInRole("Administrator")){
+      return true;
+    }
+    else if(stage == ProjectStage.Approved){
+      return false;
+    }
+    else if(stage == ProjectStage.Draft && this.keycloakService.isUserInRole("Editor")){
+      return true;
+    }
+    else if(stage == ProjectStage.Submitted && this.keycloakService.isUserInRole("Reviewer")){
+      return true;
+    }
+    return false;
+  }
 
 }

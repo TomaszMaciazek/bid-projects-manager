@@ -27,7 +27,11 @@ namespace BidProjectsManager.Validation.Validators
 
 
             RuleFor(x => x.CurrencyId)
-                .NotEmpty();
+                .NotEmpty()
+                .MustAsync(async (id, cancellationToken) =>
+                {
+                    return await unitOfWork.CurrencyRepository.GetAll().AnyAsync(x => x.Id == id);
+                }); ;
         }
     }
 }

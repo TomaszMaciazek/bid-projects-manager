@@ -33,6 +33,7 @@ namespace BidProjectsManager.Mappings.Profiles
                 .ForMember(dest => dest.ProjectCurrency, opt => opt.Ignore());
 
             CreateMap<SubmitProjectCommand, Project>()
+                .ForMember(dest => dest.Stage, opt => opt.MapFrom(x => ProjectStage.Submited))
                 .ForMember(dest => dest.ApprovalDate, opt => opt.Ignore())
                 .ForMember(dest => dest.Capexes, opt => opt.Ignore())
                 .ForMember(dest => dest.Ebits, opt => opt.Ignore())
@@ -40,6 +41,19 @@ namespace BidProjectsManager.Mappings.Profiles
                 .ForMember(dest => dest.Comments, opt => opt.Ignore())
                 .ForMember(dest => dest.Country, opt => opt.Ignore())
                 .ForMember(dest => dest.ProjectCurrency, opt => opt.Ignore());
+
+            CreateMap<SaveProjectCommand, Project>()
+                .ForMember(dest => dest.Capexes, opt => opt.Ignore())
+                .ForMember(dest => dest.Ebits, opt => opt.Ignore())
+                .ForMember(dest => dest.Opexes, opt => opt.Ignore())
+                .ForMember(dest => dest.Comments, opt => opt.Ignore())
+                .ForMember(dest => dest.Country, opt => opt.Ignore())
+                .ForMember(dest => dest.ProjectCurrency, opt => opt.Ignore());
+
+            CreateMap<Project, ProjectExportDto>()
+                .ForMember(dest => dest.No, opt => opt.MapFrom(src => $"{src.Country.Code}{src.Id:D5}"))
+                .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.Country.Code))
+                .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.ProjectCurrency.Code));
         }
     }
 }

@@ -1,0 +1,87 @@
+<p-confirmDialog header="Confirmation" icon="pi pi-exclamation-triangle"></p-confirmDialog>
+<div class="main-card">
+    <form [formGroup]="form">
+        <div class="wrapper">
+            <header class="wrapper-row header-row p-2">
+                <h1 *ngIf="isEdit" style="font-weight: 600; font-size: 2rem;">Edit Report</h1>
+                <h1 *ngIf="!isEdit" style="font-weight: 600; font-size: 2rem;">Create Report</h1>
+            </header>
+
+            <p-toolbar>
+                <div class="p-toolbar-group-start">
+                    <button pButton pRipple (click)="returnToReports()" icon="pi pi-arrow-left" label="Return" class="p-button-raised p-button-secondary p-button-text"></button>
+                </div>
+
+                <div class="p-toolbar-group-start functional-buttons">
+                    <p-button  icon="pi pi-save" styleClass="p-button-success" label="Save" (onClick)="save()"></p-button>
+                    <p-button *ngIf="isEdit" icon="pi pi-trash" styleClass="p-button-danger" label="Delete"></p-button>
+                </div>
+            </p-toolbar>
+
+            <div id="report-form">
+                <p-card styleClass="p-2">
+                    <div class="row p-2">
+                        <div class="col-md-4 col-xs-12 p-1 form-field">
+                            <h4>Report Title</h4>
+                            <div>
+                                <input type="text" placeholder="Title" pInputText formControlName="Title" [style]="{'width':'300px'}">
+                            </div>
+                            <small class="p-error block" *ngIf="form.get('Title')?.invalid && form.get('Title')?.dirty">Title is required</small>
+                        </div>
+                        <div class="col-md-4 col-xs-12 p-1 form-field">
+                            <h4>Report Group</h4>
+                            <div>
+                                <input type="text" pInputText placeholder="Group" formControlName="Group" [style]="{'width':'300px'}">
+                            </div>
+                            <small class="p-error block" *ngIf="form.get('Group')?.invalid && form.get('Group')?.dirty">Group is required</small>
+                        </div>
+                        <div class="col-md-4 col-xs-12 p-1 form-field">
+                            <h4>Max Rows</h4>
+                            <div>
+                                <p-inputNumber formControlName="MaxRows" inputId="integeronly" [showButtons]="true"
+                                placeholder="Max Rows" autoWidth="false" [min]="0" [style]="{'width':'300px'}"></p-inputNumber>
+                            </div>
+                            <small class="p-error block" *ngIf="form.get('MaxRows')?.invalid && form.get('MaxRows')?.dirty">Max Rows is required</small>
+                        </div>
+                    </div>
+                    <div class="row p-2" *ngIf="isEdit">
+                        <div class="col-md-4 col-xs-12 p-1 form-field">
+                            <h4>Version</h4>
+                            <div>
+                                <input type="text" placeholder="Version" pInputText formControlName="Version" [style]="{'width':'300px'}">
+                            </div>
+                            <small class="p-error block" *ngIf="form.get('Version')?.invalid && form.get('Version')?.dirty">Group is required</small>
+                        </div>
+                        <div class="col-md-4 col-xs-12 p-1 form-field">
+                            <h4>Is Active?</h4>
+                            <div>
+                                <p-checkbox formControlName="Active" [binary]="true"></p-checkbox>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row p-2">
+                        <div class="col-12 p-1 form-field">
+                            <h4>Description</h4>
+                            <div>
+                                <textarea [rows]="5" [cols]="100" pInputTextarea [autoResize]="true" placeholder="Description"
+                                formControlName="Description" [style]="{'width':'100%'}"></textarea>
+                            </div>
+                            <small class="p-error block" *ngIf="form.get('Description')?.invalid && form.get('Description')?.dirty">Description is required</small>
+                        </div>
+                    </div>
+
+                    <div class="row p-2">
+                        <div class="col-12 p-1 form-field">
+                            <h4>Xml Definition</h4>
+                            <div>
+                                <textarea [rows]="10" [cols]="100" pInputTextarea [autoResize]="true" placeholder="Xml Definition"
+                                formControlName="XmlDefinition" [style]="{'width':'100%'}"></textarea>
+                            </div>
+                            <small class="p-error block" *ngIf="form.get('Description')?.invalid && form.get('XmlDefinition')?.dirty">Description is required</small>
+                        </div>
+                    </div>
+                </p-card>
+            </div>
+        </div>
+    </form>
+</div>

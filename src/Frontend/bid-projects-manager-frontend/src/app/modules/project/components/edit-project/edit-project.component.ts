@@ -1,10 +1,9 @@
-import { formatDate } from '@angular/common';
-import { AfterViewInit, Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { ToastrService } from 'ngx-toastr';
-import { SelectItem } from 'primeng/api';
+import { ConfirmationService, SelectItem } from 'primeng/api';
 import { forkJoin } from 'rxjs';
 import { CreateProjectDraftBuilder } from 'src/app/builders/create-project-draft-builder.model';
 import { UpdateProjectDraftCommandBuilder } from 'src/app/builders/update-project-draft-command-builder.model';
@@ -26,11 +25,18 @@ import { ProjectDetails } from 'src/app/models/project-details.model';
 import { CountryService } from 'src/app/services/country.service';
 import { CurrencyService } from 'src/app/services/currency.service';
 import { ProjectService } from 'src/app/services/project.service';
+import { PrimeIcons } from 'primeng/api';
+import { CreateSubmittedProjectCommandBuilder } from 'src/app/builders/create-submitted-project-command-builder.model';
+import { SubmitProjectCommandBuilder } from 'src/app/builders/submit-project-command-builder.model';
+import { KeycloakService } from 'keycloak-angular';
+import { DatePipe } from '@angular/common';
+import { SaveProjectCommandBuilder } from 'src/app/builders/save-project-command-builder.model';
 
 @Component({
   selector: 'app-edit-project',
   templateUrl: './edit-project.component.html',
-  styleUrls: ['./edit-project.component.scss']
+  styleUrls: ['./edit-project.component.scss'],
+  providers: [DatePipe]
 })
 export class EditProjectComponent implements OnInit {
 
@@ -44,6 +50,7 @@ export class EditProjectComponent implements OnInit {
   public years : Array<number> = [];
   public yearsFromProject : Array<number> = [];
 
+  public timelineItems: any[] = [];
 
   private projectDetails : ProjectDetails | null = null;
   public id : number;
@@ -51,7 +58,17 @@ export class EditProjectComponent implements OnInit {
   public projectCurrency: Currency | null = null;
 
   public get stage(){
-    return this.isEdit && this.projectDetails != null ? this.projectDetails.stage : null;
+    if(!this.isEdit){
+      return ProjectStage.Draft;
+    }
+    return this.projectDetails != null ? this.projectDetails.stage : null;
+  }
+
+  public get countryCode(){
+    if(this.isEdit && this.projectDetails != null){
+      return this.countries.find(x => x.id == this.projectDetails?.countryId)?.code;
+    }
+    return '';
   }
 
   public projectTypes : SelectItem[] = [
@@ -71,13 +88,6 @@ export class EditProjectComponent implements OnInit {
     {label: 'High', value: BidProbability.High}
   ];
 
-  public projectStagesOptions : SelectItem[] = [
-    {label: 'Draft', value: ProjectStage.Draft},
-    {label: 'Submitted', value: ProjectStage.Submitted},
-    {label: 'Approved', value: ProjectStage.Rejected},
-    {label: 'Approved', value: ProjectStage.Rejected}
-  ];
-
   public bidStatusesOptions : SelectItem[] = [
     {label: 'Bid Preparation', value: BidStatus.BidPreparation},
     {label: 'Won', value: BidStatus.Won},
@@ -86,6 +96,7 @@ export class EditProjectComponent implements OnInit {
   ];
 
   constructor(
+    public datepipe: DatePipe,
     private projectService : ProjectService,
     private countryService : CountryService,
     private currencyService : CurrencyService,
@@ -93,7 +104,9 @@ export class EditProjectComponent implements OnInit {
     private spinner: NgxSpinnerService,
     private router: Router,
     private activatedRoute: ActivatedRoute,
-    private formBuilder: FormBuilder
+    private confirmationService: ConfirmationService,
+    private formBuilder: FormBuilder,
+    private keycloakService: KeycloakService
   ){}
 
   ngOnInit(): void {
@@ -108,7 +121,15 @@ export class EditProjectComponent implements OnInit {
           this.currencyService.getAllCurrencies().then(res => this.currencies = res),
           this.projectService.getProject(this.id).then(res => this.projectDetails = res)
         ])
-        .subscribe(res => {this.fillProjectFormFields(); this.spinner.hide();});
+        .subscribe(res => {
+          this.fillProjectFormFields();
+          this.spinner.hide();
+          this.timelineItems = [
+            {stage: 'Draft', icon: PrimeIcons.CHECK, color: '#0bfc03'},
+            {stage: 'Submitted', icon: this.getSecondPhaseIcon(), color: this.getSecondPhaseColor()},
+            {stage: this.stage == ProjectStage.Rejected ? 'Rejected' : 'Approved', icon: this.getThirdPhaseIcon(), color: this.getThirdPhaseColor()}
+        ];
+        });
       }
       else{
         forkJoin([
@@ -133,6 +154,13 @@ export class EditProjectComponent implements OnInit {
 
   onCountryClear(){
     this.form.controls["Currency"].setValue(null);
+  }
+
+  getCountryCode(id : number){
+    let country = this.countries.find(x => x.id == id);
+    if(country)
+      return country.code;
+    return '';
   }
 
   addNewEstimation(){
@@ -167,6 +195,123 @@ export class EditProjectComponent implements OnInit {
     }
   }
 
+  submit(){
+    this.markFields(true);
+    if(this.form.valid){
+      this.confirmationService.confirm({
+        message: 'Are you sure that you want to submit this project?',
+        accept: () => {
+          this.spinner.show();
+          if(!this.isEdit){
+            this.createSubmittedProject();
+          }
+          else{
+            this.submitProject();
+          }
+        }
+      });
+    }
+    else{
+      this.toastr.warning('Form is not valid');
+    }
+  }
+
+  approve(){
+    this.confirmationService.confirm({
+      message: 'Are you sure that you want to approve this project?',
+      accept: () => {
+        this.spinner.show();
+        this.projectService.approveProject(this.id)
+        .then(res => {
+          this.spinner.hide();
+          if(res == true){
+            this.toastr.success('Project approved');
+            this.router.navigate(['/projects/']);
+          }
+          else{
+            this.toastr.error('Failed to approve project');
+          }
+        })
+        .catch(error => {
+          this.toastr.error(error);
+          this.spinner.hide();
+        });
+      }
+    });
+  }
+
+  reject(){
+    this.confirmationService.confirm({
+      message: 'Are you sure that you want to reject this project?',
+      accept: () => {
+        this.spinner.show();
+        this.projectService.rejectProject(this.id)
+        .then(res => {
+          this.spinner.hide();
+          if(res == true){
+            this.toastr.success('Project rejected');
+            this.router.navigate(['/projects/']);
+          }
+          else{
+            this.toastr.error('Failed to reject project');
+          }
+        })
+        .catch(error => {
+          this.toastr.error(error);
+          this.spinner.hide();
+        });
+      }
+    });
+  }
+
+  rollbackToDraft(){
+    this.confirmationService.confirm({
+      message: 'Are you sure that you want to rollback this project to draft stage?',
+      accept: () => {
+        this.spinner.show();
+        this.projectService.rollbackProject(this.id)
+        .then(res => {
+          this.spinner.hide();
+          if(res == true){
+            this.toastr.success('Project rollbacked to the draft stage');
+            this.router.navigate(['/projects/']);
+          }
+          else{
+            this.toastr.error('Failed to rollback project to draft stage');
+          }
+        })
+        .catch(error => {
+          this.toastr.error(error);
+          this.spinner.hide();
+        });
+      }
+    });
+  }
+
+  deleteProject(){
+    this.confirmationService.confirm({
+      message: 'Are you sure that you want to delete this project?',
+      accept: () => {
+        this.spinner.show();
+        this.projectService.deleteProject(this.id)
+        .then(res => {
+          this.spinner.hide();
+          if(res == true){
+            this.toastr.success('Project deleted');
+            this.router.navigate(['/projects/']);
+          }
+          else{
+            this.toastr.error('Failed to delete project');
+          }
+        })
+        .catch(error => {
+          this.toastr.error(error);
+          this.spinner.hide();
+        });
+      }
+    });
+  }
+
   returnToProjects(){
     this.router.navigate(["/projects/"])
   }
@@ -176,6 +321,7 @@ export class EditProjectComponent implements OnInit {
       'Name': this.formBuilder.control(null, Validators.required),
       'Country': this.formBuilder.control(null, Validators.required),
       'Currency': this.formBuilder.control(null, Validators.nullValidator),
+      'ApprovalDate': this.formBuilder.control(null, Validators.nullValidator),
       'Status': this.formBuilder.control(null, Validators.nullValidator),
       'Type': this.formBuilder.control(null, Validators.nullValidator),
       'Description': this.formBuilder.control(null, Validators.nullValidator),
@@ -221,6 +367,7 @@ export class EditProjectComponent implements OnInit {
       this.form.controls["Country"].setValue(country);
       this.form.controls["Currency"].setValue(currency);
       this.form.controls["Status"].setValue(this.projectDetails.status);
+      this.form.controls["ApprovalDate"].setValue(this.projectDetails.approvalDate);
       this.form.controls["Type"].setValue(this.projectDetails.type);
       this.form.controls["Description"].setValue(this.projectDetails.description);
       this.form.controls["NumberOfVechicles"].setValue(this.projectDetails.numberOfVechicles);
@@ -252,18 +399,14 @@ export class EditProjectComponent implements OnInit {
           "EbitId": this.formBuilder.control(ebit != null ? ebit.id : 0, Validators.nullValidator)
         }));
       }
-
-      if(this.stage === ProjectStage.Approved){
-        this.form.addControl("ApprovalDate", this.formBuilder.control(this.projectDetails.approvalDate, Validators.nullValidator));
-      }
     }
   }
 
   private markFields(isSubmit : boolean){
     Object.keys(this.form.controls).forEach((key) => {
       this.form.controls[key].markAsDirty();
-      if(isSubmit && this.form.controls[key].value == null && key != 'ApprovalDate'){
-        this.form.controls[key].setErrors({'incorrect': true});
+      if(isSubmit && this.form.controls[key].value == null && key != 'ApprovalDate' && key != 'NoBidReason'){
+        this.form.controls[key].setErrors({'required': true});
       }
     });
   }
@@ -280,13 +423,24 @@ export class EditProjectComponent implements OnInit {
   private createDraft(){
     let builder = new CreateProjectDraftBuilder();
 
+    var bidOperationStart : Date | null = this.form.controls['BidOperationStart'].value;
+    var bidEstimatedOperationEnd : Date | null = this.form.controls['BidEstimatedOperationEnd'].value;
+
+    var operationStartValue : string | null = bidOperationStart != null
+      ? new Date(Date.UTC(new Date(bidOperationStart).getFullYear(), new Date(bidOperationStart).getMonth(), new Date(bidOperationStart).getDate())).toISOString()
+      : null;
+
+    var operationEndValue : string | null = bidEstimatedOperationEnd != null
+    ? new Date(Date.UTC(new Date(bidEstimatedOperationEnd).getFullYear(), new Date(bidEstimatedOperationEnd).getMonth(), new Date(bidEstimatedOperationEnd).getDate())).toISOString()
+    : null;
+
     let financialData = this.createFinancialData();
 
     let command = builder
     .name(this.form.controls['Name'].value)
     .description(this.form.controls['Description'].value)
-    .bidOperationStart(this.form.controls['BidOperationStart'].value)
-    .bidEstimatedOperationEnd(this.form.controls['BidEstimatedOperationEnd'].value)
+    .bidOperationStart(operationStartValue)
+    .bidEstimatedOperationEnd(operationEndValue)
     .bidProbability(this.form.controls['Probability'].value)
     .priority(this.form.controls['Priority'].value)
     .countryId(this.form.controls['Country'].value.id)
@@ -306,9 +460,14 @@ export class EditProjectComponent implements OnInit {
     .build();
 
     this.projectService.createDraftProject(command).then(res => {
-      this.toastr.success('Project created');
       this.spinner.hide();
-      this.router.navigate(['/projects/']);
+      if(res){
+        this.toastr.success('Project created');
+        this.router.navigate(['/projects/']);
+      }
+      else{
+        this.toastr.error('Project not valid');
+      }
     })
     .catch(error => {
       this.toastr.error(error);
@@ -319,8 +478,16 @@ export class EditProjectComponent implements OnInit {
   private updateDraft(){
     let builder = new UpdateProjectDraftCommandBuilder();
 
-    var startDate : Date = new Date(this.form.controls['BidOperationStart'].value);
-    var endDate : Date = new Date(this.form.controls['BidEstimatedOperationEnd'].value);
+    var bidOperationStart : Date | null = this.form.controls['BidOperationStart'].value;
+    var bidEstimatedOperationEnd : Date | null = this.form.controls['BidEstimatedOperationEnd'].value;
+
+    var operationStartValue : string | null = bidOperationStart != null
+      ? new Date(Date.UTC(new Date(bidOperationStart).getFullYear(), new Date(bidOperationStart).getMonth(), new Date(bidOperationStart).getDate())).toISOString()
+      : null;
+
+    var operationEndValue : string | null = bidEstimatedOperationEnd != null
+    ? new Date(Date.UTC(new Date(bidEstimatedOperationEnd).getFullYear(), new Date(bidEstimatedOperationEnd).getMonth(), new Date(bidEstimatedOperationEnd).getDate())).toISOString()
+    : null;
 
     let financialData = this.createFinancialData();
 
@@ -328,8 +495,8 @@ export class EditProjectComponent implements OnInit {
     .id(this.id)
     .name(this.form.controls['Name'].value)
     .description(this.form.controls['Description'].value)
-    .bidOperationStart(new Date(Date.UTC(startDate.getFullYear(), startDate.getMonth(), startDate.getDate())).toISOString())
-    .bidEstimatedOperationEnd(new Date(Date.UTC(endDate.getFullYear(), endDate.getMonth(), endDate.getDate())).toISOString())
+    .bidOperationStart(operationStartValue)
+    .bidEstimatedOperationEnd(operationEndValue)
     .bidProbability(this.form.controls['Probability'].value)
     .priority(this.form.controls['Priority'].value)
     .countryId(this.form.controls['Country'].value.id)
@@ -353,14 +520,228 @@ export class EditProjectComponent implements OnInit {
     .build();
 
     this.projectService.updateDraftProject(command).then(res => {
-      this.toastr.success('Project created');
       this.spinner.hide();
-      this.router.navigate(['/projects/']);
+      if(res){
+        this.toastr.success('Project updated');
+        this.router.navigate(['/projects/']);
+      }
+      else{
+        this.toastr.error('Project not valid');
+      }
     })
     .catch(error => {
       this.toastr.error(error);
       this.spinner.hide();
     });
+  }
+
+  private createSubmittedProject(){
+    let builder = new CreateSubmittedProjectCommandBuilder();
+
+    var bidOperationStart : Date = this.form.controls['BidOperationStart'].value;
+    var bidEstimatedOperationEnd : Date = this.form.controls['BidEstimatedOperationEnd'].value;
+
+    var operationStartValue : string =new Date(Date.UTC(new Date(bidOperationStart).getFullYear(), new Date(bidOperationStart).getMonth(), new Date(bidOperationStart).getDate())).toISOString();
+
+    var operationEndValue : string = new Date(Date.UTC(new Date(bidEstimatedOperationEnd).getFullYear(), new Date(bidEstimatedOperationEnd).getMonth(), new Date(bidEstimatedOperationEnd).getDate())).toISOString();
+
+    let financialData = this.createFinancialData();
+
+    let command = builder
+    .name(this.form.controls['Name'].value)
+    .description(this.form.controls['Description'].value)
+    .bidOperationStart(operationStartValue)
+    .bidEstimatedOperationEnd(operationEndValue)
+    .bidProbability(this.form.controls['Probability'].value)
+    .priority(this.form.controls['Priority'].value)
+    .countryId(this.form.controls['Country'].value.id)
+    .currencyId(this.form.controls['Currency'].value.id)
+    .type(this.form.controls['Type'].value)
+    .status(this.form.controls['Status'].value)
+    .lifetimeInThousandsKilometers(this.form.controls['LifetimeInThousandsKilometers'].value)
+    .numberOfVechicles(this.form.controls['NumberOfVechicles'].value)
+    .optionalExtensionYears(this.form.controls['OptionalExtensionYears'].value)
+    .totalCapex(this.form.controls['TotalCapex'].value)
+    .totalOpex(this.form.controls['TotalOpex'].value)
+    .totalEbit(this.form.controls['TotalEbit'].value)
+    .capexes(financialData.NewCapexes)
+    .opexes(financialData.NewOpexes)
+    .ebits(financialData.NewEbits)
+    .noBidReason(this.form.controls['NoBidReason'].value)
+    .build();
+
+    this.projectService.createSubmittedProject(command).then(res => {
+      this.spinner.hide();
+      if(res){
+        this.toastr.success('Project created');
+        this.router.navigate(['/projects/']);
+      }
+      else{
+        this.toastr.error('Project not valid');
+      }
+    })
+    .catch(error => {
+      this.toastr.error(error);
+      this.spinner.hide();
+    });
+  }
+
+  public saveProject(){
+    this.markFields(true);
+    if(this.form.valid){
+      let builder = new SaveProjectCommandBuilder();
+      var bidOperationStart : Date = this.form.controls['BidOperationStart'].value;
+      var bidEstimatedOperationEnd : Date = this.form.controls['BidEstimatedOperationEnd'].value;
+
+      var operationStartValue : string = new Date(Date.UTC(new Date(bidOperationStart).getFullYear(), new Date(bidOperationStart).getMonth(), new Date(bidOperationStart).getDate())).toISOString();
+
+      var operationEndValue : string = new Date(Date.UTC(new Date(bidEstimatedOperationEnd).getFullYear(), new Date(bidEstimatedOperationEnd).getMonth(), new Date(bidEstimatedOperationEnd).getDate())).toISOString();
+
+      let financialData = this.createFinancialData();
+
+      let command = builder
+      .id(this.id)
+      .name(this.form.controls['Name'].value)
+      .description(this.form.controls['Description'].value)
+      .bidOperationStart(operationStartValue)
+      .bidEstimatedOperationEnd(operationEndValue)
+      .bidProbability(this.form.controls['Probability'].value)
+      .priority(this.form.controls['Priority'].value)
+      .countryId(this.form.controls['Country'].value.id)
+      .currencyId(this.form.controls['Currency'].value.id)
+      .type(this.form.controls['Type'].value)
+      .status(this.form.controls['Status'].value)
+      .lifetimeInThousandsKilometers(this.form.controls['LifetimeInThousandsKilometers'].value)
+      .numberOfVechicles(this.form.controls['NumberOfVechicles'].value)
+      .optionalExtensionYears(this.form.controls['OptionalExtensionYears'].value)
+      .totalCapex(this.form.controls['TotalCapex'].value)
+      .totalOpex(this.form.controls['TotalOpex'].value)
+      .totalEbit(this.form.controls['TotalEbit'].value)
+      .opexes(financialData.Opexes)
+      .capexes(financialData.Capexes)
+      .ebits(financialData.Ebits)
+      .noBidReason(this.form.controls['NoBidReason'].value)
+      .build();
+
+      this.projectService.saveProject(command).then(res => {
+        this.spinner.hide();
+        if(res){
+          this.toastr.success('Project submitted');
+          this.router.navigate(['/projects/']);
+        }
+        else{
+          this.toastr.error('Project not valid');
+        }
+      })
+      .catch(error => {
+        this.toastr.error(error);
+        this.spinner.hide();
+      });
+    }
+    else{
+      this.toastr.warning("Form is not valid");
+    }
+  }
+
+  private submitProject(){
+    let builder = new SubmitProjectCommandBuilder();
+    var bidOperationStart : Date = this.form.controls['BidOperationStart'].value;
+    var bidEstimatedOperationEnd : Date = this.form.controls['BidEstimatedOperationEnd'].value;
+
+    var operationStartValue : string = new Date(Date.UTC(new Date(bidOperationStart).getFullYear(), new Date(bidOperationStart).getMonth(), new Date(bidOperationStart).getDate())).toISOString();
+
+    var operationEndValue : string = new Date(Date.UTC(new Date(bidEstimatedOperationEnd).getFullYear(), new Date(bidEstimatedOperationEnd).getMonth(), new Date(bidEstimatedOperationEnd).getDate())).toISOString();
+
+    let financialData = this.createFinancialData();
+
+    let command = builder
+    .id(this.id)
+    .name(this.form.controls['Name'].value)
+    .description(this.form.controls['Description'].value)
+    .bidOperationStart(operationStartValue)
+    .bidEstimatedOperationEnd(operationEndValue)
+    .bidProbability(this.form.controls['Probability'].value)
+    .priority(this.form.controls['Priority'].value)
+    .countryId(this.form.controls['Country'].value.id)
+    .currencyId(this.form.controls['Currency'].value.id)
+    .type(this.form.controls['Type'].value)
+    .status(this.form.controls['Status'].value)
+    .lifetimeInThousandsKilometers(this.form.controls['LifetimeInThousandsKilometers'].value)
+    .numberOfVechicles(this.form.controls['NumberOfVechicles'].value)
+    .optionalExtensionYears(this.form.controls['OptionalExtensionYears'].value)
+    .totalCapex(this.form.controls['TotalCapex'].value)
+    .totalOpex(this.form.controls['TotalOpex'].value)
+    .totalEbit(this.form.controls['TotalEbit'].value)
+    .newCapexes(financialData.NewCapexes)
+    .newOpexes(financialData.NewOpexes)
+    .newEbits(financialData.NewEbits)
+    .opexes(financialData.Opexes)
+    .capexes(financialData.Capexes)
+    .ebits(financialData.Ebits)
+    .noBidReason(this.form.controls['NoBidReason'].value)
+    .yearsToRemove(financialData.YearsToRemove)
+    .build();
+
+    this.projectService.submitProject(command).then(res => {
+      this.spinner.hide();
+      if(res){
+        this.toastr.success('Project submitted');
+        this.router.navigate(['/projects/']);
+      }
+      else{
+        this.toastr.error('Project not valid');
+      }
+    })
+    .catch(error => {
+      this.toastr.error(error);
+      this.spinner.hide();
+    });
+  }
+
+  exportProject(){
+    this.spinner.show();
+    this.projectService.exportProject(this.id)
+    .then(res => {
+      this.spinner.hide();
+      let blob = new Blob([res as BlobPart], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = 'Project_' + this.projectDetails?.name + "_" + this.datepipe.transform(new Date(),'dd_MM_yyyy_HH_mm_ss');
+      a.click();
+    });
+  }
+
+  private getThirdPhaseColor() : string{
+    if(this.stage == null || this.stage < ProjectStage.Approved){
+      return '#aaaaaa';
+    }
+    else if(this.stage == ProjectStage.Rejected){
+      return '#c90b0b';
+    }
+    else{
+      return '#0bfc03';
+    }
+  }
+
+  private getThirdPhaseIcon(){
+    if(this.stage != ProjectStage.Approved){
+      return PrimeIcons.TIMES;
+    }
+    return PrimeIcons.CHECK;
+  }
+
+  private getSecondPhaseIcon(){
+    if(this.stage != null && this.stage > ProjectStage.Draft){
+      return PrimeIcons.CHECK;
+    }
+    return PrimeIcons.TIMES;
+  }
+
+  private getSecondPhaseColor(){
+    if(this.stage != null && this.stage > ProjectStage.Draft){
+      return '#0bfc03';
+    }
+    return '#aaaaaa';
   }
 
   private getYearsToRemove(){
@@ -393,5 +774,17 @@ export class EditProjectComponent implements OnInit {
       }
     });
     return data;
+  }
+
+  public get isAdmin(){
+    return this.keycloakService.isUserInRole("Administrator");
+  }
+
+  public get canReview(){
+    return this.keycloakService.isUserInRole("Administrator") || this.keycloakService.isUserInRole("Reviewer");
+  }
+
+  public get canEdit(){
+    return this.keycloakService.isUserInRole("Administrator") || (this.keycloakService.isUserInRole("Editor") && this.stage == this.projectStage.Draft);
   }
 }

@@ -3,12 +3,14 @@ using BidProjectsManager.Logic.Services;
 using BidProjectsManager.Model.Commands;
 using BidProjectsManager.Model.Dto;
 using BidProjectsManager.Model.Queries;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BidProjectsManager.API.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class CountryController : ControllerBase
@@ -21,6 +23,7 @@ namespace BidProjectsManager.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "Administrator")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PaginatedList<CountryListItemDto>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<PaginatedList<CountryDto>>> GetCountries([FromQuery] CountryQuery query)
@@ -42,7 +45,9 @@ namespace BidProjectsManager.API.Controllers
         {
             try
             {
-                return Ok(await _countryService.GetAllCountriesAsync());
+                var token = Request.Headers["Authorization"];
+                var res = await _countryService.GetAllCountriesAsync();
+                return Ok(res);
             }
             catch (Exception ex)
             {
@@ -51,6 +56,7 @@ namespace BidProjectsManager.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "Administrator")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(bool))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -73,6 +79,7 @@ namespace BidProjectsManager.API.Controllers
 
 
         [HttpPut]
+        [Authorize(Policy = "Administrator")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(bool))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -94,6 +101,7 @@ namespace BidProjectsManager.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Policy = "Administrator")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(bool))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<bool>> DeleteCountry([FromRoute] int id)

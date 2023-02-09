@@ -6,13 +6,13 @@ import { ProjectsComponent } from './components/projects/projects.component';
 
 const routes: Routes = [
   { 
-    path: '', component: ProjectsComponent,// canActivate: [AuthGuard]
+    path: '', component: ProjectsComponent, canActivate: [AuthGuard]
   },
   { 
-    path: 'list', component: ProjectsComponent,// canActivate: [AuthGuard]
+    path: 'list', component: ProjectsComponent, canActivate: [AuthGuard]
   },
   { 
-    path: 'edit', component: EditProjectComponent,// canActivate: [AuthGuard]
+    path: 'edit', component: EditProjectComponent, canActivate: [AuthGuard]
   },
 ];
 

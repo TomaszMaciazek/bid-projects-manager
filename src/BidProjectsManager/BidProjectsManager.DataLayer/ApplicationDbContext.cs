@@ -18,6 +18,7 @@ namespace BidProjectsManager.DataLayer
         public DbSet<Project> Projects { get; set; }
         public DbSet<ProjectComment> Comments { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<ReportDefinition> ReportDefinitions { get; set; }
         public DbSet<DictionaryType> DictionaryTypes { get; set; }
         public DbSet<DictionaryValue> DictionaryValues { get; set; }
 

@@ -1,0 +1,23 @@
+@import "variables";
+
+.main-card{
+    padding: 10px 2% 10px 2%;
+    background-color: $gray;
+}
+
+#report-form{
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.functional-buttons{
+    gap: 10px;
+    display: flex;
+    flex-direction: row;
+}
+
+.form-field{
+    display: flex;
+    flex-direction: column;
+}

@@ -73,12 +73,12 @@ export class CreateProjectDraftBuilder {
         return this;
     }
 
-    public bidOperationStart(bidOperationStart : Date | null){
+    public bidOperationStart(bidOperationStart : string | null){
         this.command.BidOperationStart = bidOperationStart;
         return this;
     }
 
-    public bidEstimatedOperationEnd(bidEstimatedOperationEnd : Date | null){
+    public bidEstimatedOperationEnd(bidEstimatedOperationEnd : string | null){
         this.command.BidEstimatedOperationEnd = bidEstimatedOperationEnd;
         return this;
     }

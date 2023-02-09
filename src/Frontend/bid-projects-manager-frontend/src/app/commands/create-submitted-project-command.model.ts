@@ -8,15 +8,14 @@ export class CreateSubmittedProjectCommand extends CreateProjectCommand{
     public Status : BidStatus;
     public Type : ProjectType;
     public NumberOfVechicles : number;
-    public BidOperationStart : Date;
-    public BidEstimatedOperationEnd : Date;
+    public BidOperationStart : string;
+    public BidEstimatedOperationEnd : string;
     public OptionalExtensionYears : number;
     public LifetimeInThousandsKilometers : number;
     public TotalCapex : number;
     public TotalOpex : number;
     public TotalEbit : number;
-    public BidProbability : BidProbability;
+    public Probability : BidProbability;
     public Priority : BidPriority;
     public ApprovalDate : Date;
-
 }

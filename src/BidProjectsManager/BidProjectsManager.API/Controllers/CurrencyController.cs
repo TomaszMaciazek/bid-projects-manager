@@ -3,11 +3,13 @@ using BidProjectsManager.Logic.Services;
 using BidProjectsManager.Model.Commands;
 using BidProjectsManager.Model.Dto;
 using BidProjectsManager.Model.Queries;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BidProjectsManager.API.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class CurrencyController : ControllerBase
@@ -20,6 +22,7 @@ namespace BidProjectsManager.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "Administrator")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PaginatedList<CurrencyListItemDto>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<PaginatedList<CurrencyListItemDto>>> GetCurrencies([FromQuery] CurrencyQuery query)
@@ -52,6 +55,7 @@ namespace BidProjectsManager.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "Administrator")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(bool))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -73,6 +77,7 @@ namespace BidProjectsManager.API.Controllers
         }
 
         [HttpPut]
+        [Authorize(Policy = "Administrator")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(bool))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -94,6 +99,7 @@ namespace BidProjectsManager.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Policy = "Administrator")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(bool))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> DeleteCurrency([FromRoute] int id)

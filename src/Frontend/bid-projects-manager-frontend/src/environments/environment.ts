@@ -4,7 +4,12 @@
 
 export const environment = {
   production: false,
-  apiUrl: 'https://localhost:7230/api'
+  apiUrl: 'https://localhost:7230/api',
+  keycloak: {
+    url: 'http://localhost:8080/auth',
+    realm: 'bids',
+    clientId: 'app-angular'
+  }
 };
 
 /*

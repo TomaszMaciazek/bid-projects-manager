@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
 import { ProjectRoutingModule } from './project-routing.module';
 import { SharedModule } from '../shared/shared.module';
 import { ProjectsComponent } from './components/projects/projects.component';

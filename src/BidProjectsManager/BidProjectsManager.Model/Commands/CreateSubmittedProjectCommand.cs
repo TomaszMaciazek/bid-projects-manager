@@ -14,7 +14,7 @@ namespace BidProjectsManager.Model.Commands
         public decimal TotalCapex { get; set; }
         public decimal TotalOpex { get; set; }
         public decimal TotalEbit { get; set; }
-        public BidProbability BidProbability { get; set; }
+        public BidProbability Probability { get; set; }
         public BidPriority Priority { get; set; }
     }
 }

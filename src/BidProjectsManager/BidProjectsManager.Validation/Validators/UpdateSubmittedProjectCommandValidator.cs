@@ -20,30 +20,15 @@ namespace BidProjectsManager.Validation.Validators
                 .NotEmpty()
                 .MustAsync(async (currencyId, cancelationToken) =>
                 {
-                    return !await unitOfWork.CurrencyRepository.GetAll().AnyAsync(x => x.Id == currencyId, cancellationToken: cancelationToken);
+                    return await unitOfWork.CurrencyRepository.GetAll().AnyAsync(x => x.Id == currencyId, cancellationToken: cancelationToken);
                 });
 
             RuleFor(c => c.CountryId)
                 .NotEmpty()
                 .MustAsync(async (countryId, cancelationToken) =>
                 {
-                    return !await unitOfWork.CountryRepository.GetAll().AnyAsync(x => x.Id == countryId, cancellationToken: cancelationToken);
+                    return await unitOfWork.CountryRepository.GetAll().AnyAsync(x => x.Id == countryId, cancellationToken: cancelationToken);
                 });
-
-            RuleFor(c => c.NumberOfVechicles).NotEmpty();
-            RuleFor(c => c.TotalEbit).NotEmpty();
-            RuleFor(c => c.TotalCapex).NotEmpty();
-            RuleFor(c => c.TotalOpex).NotEmpty();
-            RuleFor(c => c.OptionalExtensionYears).NotEmpty();
-            RuleFor(c => c.Probability).NotEmpty();
-            RuleFor(c => c.BidEstimatedOperationEnd).NotEmpty();
-            RuleFor(c => c.BidOperationStart).NotEmpty();
-            RuleFor(c => c.BidStatus).NotEmpty();
-            RuleFor(c => c.CountryId).NotEmpty();
-            RuleFor((c => c.Description)).NotEmpty();
-            RuleFor(c => c.LifetimeInKilometers).NotEmpty();
-            RuleFor(c => c.Priority).NotEmpty();
-            RuleFor(c => c.Stage).NotEmpty();
 
             RuleForEach(x => x.NewCapexes).SetValidator(new CreateCapexCommandValidator());
             RuleForEach(x => x.NewEbits).SetValidator(new CreateEbitCommandValidator());

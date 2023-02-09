@@ -1,4 +1,6 @@
 ﻿using BidProjectsManager.DataLayer.Repositories;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace BidProjectsManager.DataLayer.Common
 {
@@ -12,7 +14,10 @@ namespace BidProjectsManager.DataLayer.Common
         IProjectCommentRepository ProjectCommentRepository { get; }
         IProjectRepository ProjectRepository { get; }
         IUserRepository UserRepository { get; }
+        IReportDefinitionRepository ReportDefinitionRepository { get; }
+        void SaveChanges();
         Task SaveChangesAsync();
+        string GetConnectionString();
     }
 
     public class UnitOfWork : IUnitOfWork
@@ -25,7 +30,7 @@ namespace BidProjectsManager.DataLayer.Common
         public ICountryRepository CountryRepository { get; private set; }
         public ICurrencyRepository CurrencyRepository { get; private set; }
         public IProjectCommentRepository ProjectCommentRepository { get; private set; }
-
+        public IReportDefinitionRepository ReportDefinitionRepository { get; private set; }
         public IUserRepository UserRepository { get; private set; }
 
         public UnitOfWork(ApplicationDbContext context)
@@ -38,6 +43,7 @@ namespace BidProjectsManager.DataLayer.Common
             CountryRepository = new CountryRepository(_context);
             CurrencyRepository = new CurrencyRepository(_context);
             ProjectCommentRepository = new ProjectCommentRepository(_context);
+            ReportDefinitionRepository= new ReportDefinitionRepository(_context);
             UserRepository= new UserRepository(_context);
 
         }
@@ -45,6 +51,16 @@ namespace BidProjectsManager.DataLayer.Common
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();
+        }
+        public void SaveChanges()
+        {
+             _context.SaveChanges();
+        }
+
+
+        public string GetConnectionString()
+        {
+            return _context.Database.GetConnectionString() ?? string.Empty;
         }
     }
 }

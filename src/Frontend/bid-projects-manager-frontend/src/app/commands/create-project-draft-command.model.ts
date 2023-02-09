@@ -8,8 +8,8 @@ export class CreateProjectDraftCommand extends CreateProjectCommand {
     public Status : BidStatus | null;
     public Type : ProjectType | null;
     public NumberOfVechicles : number | null;
-    public BidOperationStart : Date | null;
-    public BidEstimatedOperationEnd : Date | null;
+    public BidOperationStart : string | null;
+    public BidEstimatedOperationEnd : string | null;
     public OptionalExtensionYears : number | null;
     public LifetimeInThousandsKilometers : number | null;
     public TotalCapex : number | null;

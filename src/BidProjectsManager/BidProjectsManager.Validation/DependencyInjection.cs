@@ -25,6 +25,9 @@ namespace BidProjectsManager.Validation
             services.AddScoped<IValidator<CreateSubmittedProjectCommand>, CreateSubmittedProjectCommandValidator>();
             services.AddScoped<IValidator<UpdateDraftProjectCommand>, UpdateDraftProjectCommandValidator>();
             services.AddScoped<IValidator<SubmitProjectCommand>, SubmitProjectCommandValidator>();
+            services.AddScoped<IValidator<CreateReportDefinitionCommand>, CreateReportDefinitionCommandValidator>();
+            services.AddScoped<IValidator<UpdateReportDefinitionCommand>, UpdateReportDefinitionCommandValidator>();
+            services.AddScoped<IValidator<SaveProjectCommand>, SaveProjectCommandValidator>();
             return services;
         }
     }

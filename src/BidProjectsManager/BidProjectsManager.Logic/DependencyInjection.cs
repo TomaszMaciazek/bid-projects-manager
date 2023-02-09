@@ -11,6 +11,7 @@ namespace BidProjectsManager.Logic
             services.AddScoped<ICurrencyService, CurrencyService>();
             services.AddScoped<ICommentService, CommentService>();
             services.AddScoped<IProjectService, ProjectService>();
+            services.AddScoped<IReportService, ReportService>();
             return services;
         }
     }

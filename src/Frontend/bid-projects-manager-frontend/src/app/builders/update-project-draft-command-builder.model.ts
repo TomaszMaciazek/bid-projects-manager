@@ -86,7 +86,7 @@ export class UpdateProjectDraftCommandBuilder {
         return this;
     }
 
-    public status(status : BidStatus){
+    public status(status : BidStatus | null){
         this.command.Status = status;
         return this;
     }

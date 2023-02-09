@@ -93,7 +93,7 @@ namespace BidProjectsManager.DataLayer
                     new DictionaryType { Id = 2, Name = "Bid Status"},
                     new DictionaryType{ Id = 3, Name = "Priority"},
                     new DictionaryType{ Id = 4, Name = "Probability"},
-                    new DictionaryType{ Id = 4, Name = "Project Type"}
+                    new DictionaryType{ Id = 5, Name = "Project Type"}
                     };
                 _context.DictionaryTypes.AddRange(bidPriorities);
                 await _context.SaveChangesAsync();
@@ -113,6 +113,7 @@ namespace BidProjectsManager.DataLayer
                     new DictionaryValue { DictionaryTypeId = 2, Value= 2, Description =  "Won"},
                     new DictionaryValue { DictionaryTypeId = 2, Value= 3, Description =  "Lost"},
                     new DictionaryValue { DictionaryTypeId = 2, Value= 4, Description =  "No Bid"},
+                    new DictionaryValue { DictionaryTypeId = 2, Value= 5, Description =  "Awaiting Signature"},
                     new DictionaryValue { DictionaryTypeId = 3, Value= 1, Description =  "Low"},
                     new DictionaryValue { DictionaryTypeId = 3, Value= 2, Description =  "Medium"},
                     new DictionaryValue { DictionaryTypeId = 3, Value= 3, Description =  "High"},
