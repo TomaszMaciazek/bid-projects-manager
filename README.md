@@ -1,2 +1,2 @@
 # bid-projects-manager
-Application for bid projects management
+Web Application for managing bid projects and creating xlsx reports about them
